@@ -21,7 +21,22 @@ module.exports.routes = {
 
   '/': { view: 'pages/homepage' },
 
+  //User
+  "get /user" : "UserController.getAll",
 
+  //Lab
+  "get /lab" : "LabController.getAll",
+
+  //Area
+  "get /area" : "AreaController.getAll",
+
+  //Control Point
+  "get /control-point" : "ControlPointController.getAll",
+  //Role
+  "get /role" : "RoleController.getAll",
+
+  //Permission
+  "get /permission" : "PermissionController.getAll"
   /***************************************************************************
   *                                                                          *
   * More custom routes here...                                               *
