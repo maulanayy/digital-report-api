@@ -10,12 +10,11 @@ module.exports = {
     id: {
       type: "number",
       columnName: "intLabID",
-      required: true,
       autoIncrement: true,
     },
     txtName: {
       type: "string",
-      unique: true,
+      required: true,
       columnName: "txtName",
     },  
   },

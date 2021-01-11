@@ -10,7 +10,6 @@ module.exports = {
     id: {
       type: "number",
       columnName: "intUserID",
-      required: true,
       autoIncrement: true,
     },
     txtUsername: {
@@ -38,5 +37,18 @@ module.exports = {
       type: "number",
       columnName: "intControlPointID",
     },
+  },
+  
+  beforeCreate: function (valuesToSet, proceed) {
+    // Hash password
+
+    const password = valuesToSet.txtPassword ? valuesToSet.txtPassword : "";
+    sails.helpers.hashPassword(password).exec((err, hashedPassword) => {
+      if (err) {
+        return proceed(err);
+      }
+      valuesToSet.txtPassword = hashedPassword;
+      return proceed();
+    });
   },
 };

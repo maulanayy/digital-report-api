@@ -71,10 +71,10 @@ module.exports.models = {
   attributes: {
     dtmCreatedAt: { type: "ref", columnType: "date", autoCreatedAt: true },
     dtmUpdatedAt: { type: "ref", columnType: "date", defaultsTo: null },
-    dtmdDletedAt: { type: "ref", columnType: "date", defaultsTo: null },
+    dtmDeletedAt: { type: "ref", columnType: "date", defaultsTo: null },
     txtCreatedBy: { type: "string" },
-    dtmUpdatedBy: { type: "string" },
-    dtmDeletedBy: { type: "string" },
+    txtUpdatedBy: { type: "string" },
+    txtDeletedBy: { type: "string" },
     //--------------------------------------------------------------------------
     //  /\   Using MongoDB?
     //  ||   Replace `id` above with this instead:

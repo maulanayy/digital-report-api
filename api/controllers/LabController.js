@@ -9,11 +9,9 @@ module.exports = {
   getAll: async (req, res) => {
     const { page, limit } = req.query;
     let query = {
-      dtmdDletedAt: {
-        "!=": null,
-      },
+      dtmDeletedAt: null,
     };
-    const sort = req.query.sort ? req.query.sort : "createdAt DESC";
+    const sort = req.query.sort ? req.query.sort : "dtmCreatedAt DESC";
     try {
       let labs = [];
       const pagination = {
@@ -44,12 +42,128 @@ module.exports = {
         data: labs,
         meta: meta,
       };
-      const resp = await sails.helpers.successResponse(data, "success");
-      res.ok(resp);
+      
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
     } catch (err) {
       console.log("ERROR : ", err);
-      const resp = await sails.helpers.errorResponse(err.message, "failed");
-      res.status(401).send(resp);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getOne: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const data = await M_Lab.findOne({
+        where: {
+          id: id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!data) {
+        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  create: async (req, res) => {
+    const { user } = req;
+    let { body } = req;
+    try {
+      const data = await M_Lab.create({
+        txtName: body.name,
+        txtCreatedBy: user.id,
+      }).fetch();
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  update: async (req, res) => {
+    const { user, params } = req;
+    let { body } = req;
+    try {
+      const lab = await M_Lab.findOne({
+        where: {
+          id: params.id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!lab) {
+        sails.helpers.errorResponse("user not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      const data = await M_Lab.update({
+        id: params.id,
+      }).set({
+        txtName: body.name,
+        txtUpdatedBy: user.id,
+        dtmUpdatedAt: new Date(),
+      });
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  delete: async (req, res) => {
+    const { user, params } = req;
+    try {
+      const lab = await M_Lab.findOne({
+        where: {
+          id: params.id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!lab) {
+        sails.helpers.errorResponse("user not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      const data = await M_Lab.update({
+        id: params.id,
+      }).set({
+        txtDeletedBy: user.id,
+        dtmDeletedAt: new Date(),
+      });
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
     }
   },
 };

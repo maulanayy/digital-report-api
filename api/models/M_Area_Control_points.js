@@ -1,26 +1,23 @@
 /**
- * M_Areas.js
+ * M_Area_Control_points.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
 module.exports = {
+
   attributes: {
-    id: {
+    intAreaID: {
       type: "number",
       columnName: "intAreaID",
-      autoIncrement: true,
     },
-    txtName: {
-      type: "string",
-      required: true,
-      unique: true,
-      columnName: "txtName",
-    },
-    intLabID : {
+    intControlPointID: {
       type: "number",
-      columnName: "intLabID",
-    }
+      columnName: "intControlPointID",
+    },
+
   },
+
 };
+

@@ -23,12 +23,25 @@ module.exports.routes = {
 
   //User
   "get /user" : "UserController.getAll",
+  "get /user/:id" : "UserController.getOne",
+  "post /login" : "UserController.login",
+  "post /user" : "UserController.create",
+  "put /user/:id" : "UserController.update",
+  "delete /user/:id" : "UserController.delete",
 
   //Lab
   "get /lab" : "LabController.getAll",
+  "get /lab/:id" : "LabController.getOne",
+  "post /lab" : "LabController.create",
+  "put /lab/:id" : "LabController.update",
+  "delete /lab/:id" : "LabController.delete",
 
   //Area
   "get /area" : "AreaController.getAll",
+  "get /area/:id" : "AreaController.getOne",
+  "post /area" : "AreaController.create",
+  "put /area/:id" : "AreaController.update",
+  "delete /area/:id" : "AreaController.delete",
 
   //Control Point
   "get /control-point" : "ControlPointController.getAll",

@@ -1,26 +1,22 @@
 /**
- * M_Areas.js
+ * M_Role_Permissions.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
 module.exports = {
+
   attributes: {
-    id: {
+    intRoleID: {
       type: "number",
-      columnName: "intAreaID",
-      autoIncrement: true,
+      columnName: "intRoleID",
     },
-    txtName: {
-      type: "string",
-      required: true,
-      unique: true,
-      columnName: "txtName",
-    },
-    intLabID : {
+    intPermissionID: {
       type: "number",
-      columnName: "intLabID",
-    }
+      columnName: "intPermissionID",
+    },
   },
+
 };
+
