@@ -8,6 +8,11 @@
 module.exports = {
 
   attributes: {
+    id :{
+      type : "number",
+      columnName : "intRolePermissionID",
+      autoIncrement : true,
+    },
     intRoleID: {
       type: "number",
       columnName: "intRoleID",

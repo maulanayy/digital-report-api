@@ -25,6 +25,29 @@ module.exports = {
       type: "string",
       columnName: "txtName",
     },
+    txtDepartment: {
+      type: "string",
+      columnName: "TxtDepartment",
+    },
+    txtRelationship: {
+      type: "string",
+      columnName: "TxtRelationship",
+    },
+    txtSex: {
+      type: "string",
+      enum: ["M", "L"],
+      columnName: "TxtSex",
+    },
+    dtmBirtDate: {
+      type: "ref",
+      columnType: "date",
+      defaultsTo: null,
+      columnName: "dtmBirtDate",
+    },
+    intAge: {
+      type: "number",
+      columnName: "intAge",
+    },
     intRoleID: {
       type: "number",
       columnName: "intRoleID",
@@ -38,7 +61,7 @@ module.exports = {
       columnName: "intControlPointID",
     },
   },
-  
+
   beforeCreate: function (valuesToSet, proceed) {
     // Hash password
 
