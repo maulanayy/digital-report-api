@@ -85,7 +85,7 @@ module.exports = {
     try {
       const data = await M_Areas.create({
         txtName: body.name,
-        txtCreatedBy: user.id,
+        // txtCreatedBy: user.id,
         intLabID: body.lab_id,
       }).fetch();
 

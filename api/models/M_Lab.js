@@ -15,6 +15,7 @@ module.exports = {
     txtName: {
       type: "string",
       required: true,
+      unique: true,
       columnName: "txtName",
     },  
   },

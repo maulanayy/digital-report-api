@@ -1,5 +1,5 @@
 /**
- * M_Ewon_subscriber_setting.js
+ * M_Form_Variable.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
@@ -9,23 +9,20 @@ module.exports = {
   attributes: {
     id: {
       type: "number",
-      columnName: "intEwonSubsSettingID",
+      columnName: "intFormVariableID",
       autoIncrement: true,
     },
-    txtTopic: {
+    txtVariableName: {
       type: "string",
-      required: true,
-      columnName: "txtTopic",
+      columnName: "txtVariableName",
     },
-    txtTypeTopic: {
+    txtStandardValue: {
       type: "string",
-      required: true,
-      columnName: "txtTypeTopic",
+      columnName: "txtStandardValue",
     },
-    txtStatus: {
-      type: "boolean",
-      defaultsTo: true,
-      columnName: "txtStatus",
+    intFormParameterID: {
+      type: "number",
+      columnName: "intFormParameterID",
     },
   },
 };

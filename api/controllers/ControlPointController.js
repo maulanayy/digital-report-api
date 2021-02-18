@@ -5,7 +5,6 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-
 module.exports = {
   getAll: async (req, res) => {
     const { page, limit } = req.query;
@@ -86,14 +85,8 @@ module.exports = {
     try {
       const data = await M_Control_points.create({
         txtName: body.name,
-        txtCreatedBy: user.id,
+        // txtCreatedBy: user.id,
       }).fetch();
-
-      await M_Area_Control_points.create({
-        intAreaID : body.area_id,
-        intControlPointID : data.id,
-        txtCreatedBy: user.id,
-      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -126,7 +119,7 @@ module.exports = {
         id: params.id,
       }).set({
         txtName: body.name,
-        txtUpdatedBy: user.id,
+        // txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });
 

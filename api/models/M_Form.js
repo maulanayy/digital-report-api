@@ -50,9 +50,21 @@ module.exports = {
       columnType: "date",
       columnName: "dtmProductionDate",
     },
-    intMachineNumber: {
-      type: "number",
-      columnName: "intMachineNumber",
+    txtPreparedBy : {
+      type : "string",
+      columnName : "txtPreparedBy"
     },
+    txtApprovedBy : {
+      type : "string",
+      columnName : "txtApprovedBy"
+    },
+    txtRemark : {
+      type : "string",
+      columnName : "txtRemark"
+    },
+    intAreaControlPointID : {
+      type: "number",
+      columnName: "intAreaControlPointID",
+    }
   },
 };

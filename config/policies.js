@@ -17,15 +17,15 @@ module.exports.policies = {
   *                                                                          *
   ***************************************************************************/
 
-  // '*': true,
-  UserController : {
-    login : true,
-    "*" : "isAuthenticated"
-  },
-  LabController : {
-    "*" : "isAuthenticated"
-  },
-  AreaController : {
-    "*" : "isAuthenticated"
-  }
+  '*': true,
+  // UserController : {
+  //   login : true,
+  //   "*" : "isAuthenticated"
+  // },
+  // LabController : {
+  //   "*" : "isAuthenticated"
+  // },
+  // AreaController : {
+  //   "*" : "isAuthenticated"
+  // }
 };

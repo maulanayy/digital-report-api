@@ -45,8 +45,28 @@ module.exports.routes = {
 
   //Control Point
   "get /control-point" : "ControlPointController.getAll",
+  "get /control-point/:id" : "ControlPointController.getOne",
+  "post /control-point" : "ControlPointController.create",
+  "put /control-point/:id" : "ControlPointController.update",
+  "delete /control-point/:id" : "ControlPointController.delete",
+
   //Role
   "get /role" : "RoleController.getAll",
+  "get /role/:id" : "RoleController.getOne",
+  "post /role" : "RoleController.create",
+  "put /role/:id" : "RoleController.update",
+  "delete /role/:id" : "RoleController.delete",
+
+  //Setting
+
+  "get /setting/ewon"  : "SettingController.getEwon",
+  "get /setting/ewon/:id"  : "SettingController.getOneEwon",
+  "get /setting/oracle" : "SettingController.getOracle",
+  "get /setting/oracle/:id"  : "SettingController.getOneOracle",
+  "post /setting/ewon" : "SettingController.createEwon",
+  "post /setting/oracle" : "SettingController.createOracle",
+  "put /setting/ewon/:id" : "SettingController.updateEwon",
+  "put /setting/oracle/:id" : "SettingController.updateOracle",
 
   //Permission
   "get /permission" : "PermissionController.getAll"

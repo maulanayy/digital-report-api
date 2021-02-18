@@ -1,21 +1,27 @@
 /**
- * M_Control_points.js
+ * M_Form_Parameter.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
 module.exports = {
+
   attributes: {
     id: {
       type: "number",
-      columnName: "intControlPointID",
+      columnName: "intFormParameterID",
       autoIncrement: true,
     },
-    txtName: {
+    txtParameterName: {
       type: "string",
-      unique: true,
-      columnName: "txtName",
+      columnName: "txtParameterName",
     },
+    intFormID : {
+      type : "number",
+      columnName : "intFormID"
+    }
   },
+
 };
+
