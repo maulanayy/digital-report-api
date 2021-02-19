@@ -154,7 +154,7 @@ module.exports = {
         id: params.id,
       }).set({
         txtName: body.name,
-        txtUpdatedBy: user.id,
+        // txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });
 
@@ -187,7 +187,7 @@ module.exports = {
       const data = await M_Areas.update({
         id: params.id,
       }).set({
-        txtDeletedBy: user.id,
+        // txtDeletedBy: user.id,
         dtmDeletedAt: new Date(),
       });
 

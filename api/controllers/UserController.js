@@ -27,10 +27,16 @@ module.exports = {
 
       const count = await M_Users.count(query);
       if (count > 0) {
-        users = await M_Users.find(query)
-          .skip(pagination.page * pagination.limit)
-          .limit(pagination.limit)
-          .sort(sort);
+        const queries = await sails.sendNativeQuery(
+          `
+          SELECT m_users."intUserID" as id,m_users."txtName",m_users."txtUsername",m_users."TxtDepartment",
+          m_roles."txtName" as txtRoles,m_users."dtmCreatedAt" from m_users,m_roles where 
+          m_users."intRoleID" = m_roles."intRoleID" AND m_users."dtmDeletedAt" is null 
+          order by m_users."dtmCreatedAt" DESC offset $1 limit $2
+              `,
+          [pagination.page * pagination.limit, pagination.limit]
+        );
+        users = queries.rows;
       }
 
       const numberOfPages = Math.ceil(count / pagination.limit);
@@ -93,15 +99,15 @@ module.exports = {
         txtUsername: body.username,
         txtPassword: body.password,
         txtName: body.name,
-        txtDepartment : body.department,
-        txtRelationship : body.relationship,
-        txtSex : body.sex,
-        dtmBirtDate : body.birth_date,
-        intAge : body.age,
-        intRoleID: body.role_id,
-        intLabID: body.lab_id,
-        intControlPointID: body.control_point_id,
-        txtCreatedBy: user.id,
+        txtDepartment: body.department,
+        txtRelationship: body.relationship,
+        txtSex: body.gender,
+        dtmBirtDate: body.birth_date,
+        intAge: body.age,
+        intRoleID: body.role,
+        intLabID: body.lab,
+        intControlPointID: body.control_point,
+        // txtCreatedBy: user.id,
       }).fetch();
 
       sails.helpers.successResponse(data, "success").then((resp) => {
@@ -135,15 +141,15 @@ module.exports = {
         id: params.id,
       }).set({
         txtName: body.name,
-        txtDepartment : body.department,
-        txtRelationship : body.relationship,
-        txtSex : body.sex,
-        dtmBirtDate : body.birth_date,
-        intAge : body.age,
-        intRoleID: body.role_id,
-        intLabID: body.lab_id,
-        intControlPointID: body.control_point_id,
-        txtUpdatedBy: user.id,
+        txtDepartment: body.department,
+        txtRelationship: body.relationship,
+        txtSex: body.gender,
+        dtmBirtDate: body.birth_date,
+        intAge: body.age,
+        intRoleID: body.role,
+        intLabID: body.lab,
+        intControlPointID: body.control_point,
+        // txtUpdatedBy: user.id,
         updatedAt: new Date(),
       });
 

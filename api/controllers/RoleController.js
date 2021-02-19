@@ -79,6 +79,29 @@ module.exports = {
       });
     }
   },
+  getCode: async (req, res) => {
+    try {
+      const areas = await M_Roles.find({
+        where: {
+          dtmDeletedAt: null,
+        },
+        select: ["id", "txtName"],
+      });
+
+      const data = {
+        data: areas,
+      };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   create: async (req, res) => {
     const { user } = req;
     let { body } = req;

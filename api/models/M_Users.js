@@ -74,4 +74,16 @@ module.exports = {
       return proceed();
     });
   },
+  beforeUpdate: function (valuesToSet, proceed) {
+    // Hash password
+
+    const password = valuesToSet.txtPassword ? valuesToSet.txtPassword : "";
+    sails.helpers.hashPassword(password).exec((err, hashedPassword) => {
+      if (err) {
+        return proceed(err);
+      }
+      valuesToSet.txtPassword = hashedPassword;
+      return proceed();
+    });
+  },
 };

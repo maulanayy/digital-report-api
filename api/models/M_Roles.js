@@ -10,7 +10,6 @@ module.exports = {
     id: {
       type: "number",
       columnName: "intRoleID",
-      required: true,
       autoIncrement: true,
     },
     txtName: {

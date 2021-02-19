@@ -56,6 +56,7 @@ module.exports.routes = {
   //Role
   "get /role" : "RoleController.getAll",
   "get /role/:id" : "RoleController.getOne",
+  "get /role/code"  : "RoleController.getCode",
   "post /role" : "RoleController.create",
   "put /role/:id" : "RoleController.update",
   "delete /role/:id" : "RoleController.delete",
@@ -64,6 +65,7 @@ module.exports.routes = {
 
   "get /setting/ewon"  : "SettingController.getEwon",
   "get /setting/ewon/:id"  : "SettingController.getOneEwon",
+  "get /setting/ewon/code"  : "SettingController.getEwonCode",
   "get /setting/oracle" : "SettingController.getOracle",
   "get /setting/oracle/:id"  : "SettingController.getOneOracle",
   "get /setting/parameter" : "SettingController.getParameter",
