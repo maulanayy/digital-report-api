@@ -101,6 +101,55 @@ module.exports = {
       });
     }
   },
+  getParameter: async (req, res) => {
+    const { page, limit } = req.query;
+    let query = {
+      dtmDeletedAt: null,
+    };
+    const sort = req.query.sort ? req.query.sort : "dtmCreatedAt DESC";
+    try {
+      let parameterData = [];
+      const pagination = {
+        page: parseInt(page) - 1 || 0,
+        limit: parseInt(limit) || 20,
+      };
+      const queries = await sails.sendNativeQuery("select * from m_parameter",[])
+      console.log("ROWS : ",queries.rows)
+      const count = await M_Parameter.count(query);
+      if (count > 0) {
+        parameterData = await M_Parameter.find(query)
+          .skip(pagination.page * pagination.limit)
+          .limit(pagination.limit)
+          .sort(sort);
+        
+      }
+
+      const numberOfPages = Math.ceil(count / pagination.limit);
+      const nextPage = parseInt(page) + 1;
+      const meta = {
+        page: parseInt(page),
+        perPage: pagination.limit,
+        previousPage: parseInt(page) > 1 ? parseInt(page) - 1 : false,
+        nextPage: numberOfPages >= nextPage ? nextPage : false,
+        pageCount: numberOfPages,
+        total: count,
+      };
+
+      const data = {
+        data: parameterData,
+        meta: meta,
+      };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   getOneEwon: async (req, res) => {
     const { id } = req.params;
     try {

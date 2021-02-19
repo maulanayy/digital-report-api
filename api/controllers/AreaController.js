@@ -21,10 +21,21 @@ module.exports = {
 
       const count = await M_Areas.count(query);
       if (count > 0) {
-        areas = await M_Areas.find(query)
-          .skip(pagination.page * pagination.limit)
-          .limit(pagination.limit)
-          .sort(sort);
+        // areas = await M_Areas.find(query)
+        //   .skip(pagination.page * pagination.limit)
+        //   .limit(pagination.limit)
+        //   .sort(sort);
+
+        const queries = await sails.sendNativeQuery(
+          `
+        SELECT m_areas."intAreaID" as id,m_areas."txtName" as txtName, 
+        m_lab."txtName" as labTxtName,m_areas."dtmCreatedAt" as dtmCreatedAt from m_areas,m_lab where m_areas."dtmDeletedAt" is NULL 
+        AND m_areas."intLabID" = m_lab."intLabID" order by m_areas."dtmCreatedAt" DESC offset $1 limit $2
+        `,
+          [pagination.page * pagination.limit, pagination.limit]
+        );
+
+        areas = queries.rows;
       }
 
       const numberOfPages = Math.ceil(count / pagination.limit);
@@ -68,6 +79,29 @@ module.exports = {
           res.status(401).send(resp);
         });
       }
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getCode: async (req, res) => {
+    try {
+      const areas = await M_Areas.find({
+        where: {
+          dtmDeletedAt: null,
+        },
+        select: ["id", "txtName"],
+      });
+
+      const data = {
+        data: areas,
+      };
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);

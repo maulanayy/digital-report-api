@@ -85,7 +85,7 @@ module.exports = {
     try {
       const data = await M_Roles.create({
         txtName: body.name,
-        txtCreatedBy: user.id,
+        // txtCreatedBy: user.id,
       }).fetch();
 
       sails.helpers.successResponse(data, "success").then((resp) => {
@@ -119,7 +119,7 @@ module.exports = {
         id: params.id,
       }).set({
         txtName: body.name,
-        txtUpdatedBy: user.id,
+        // txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });
 
@@ -152,7 +152,7 @@ module.exports = {
       const data = await M_Roles.update({
         id: params.id,
       }).set({
-        txtDeletedBy: user.id,
+        // txtDeletedBy: user.id,
         dtmDeletedAt: new Date(),
       });
 

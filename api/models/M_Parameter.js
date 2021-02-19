@@ -20,9 +20,9 @@ module.exports = {
       type: "number",
       columnName: "intEwonSubsSettingID",
     },
-    intFormID: {
-      type: "number",
-      columnName: "intFormID",
-    },
+    intControlPointID : {
+      type : "number",
+      columnName : "intControlPointID"
+    }
   },
 };

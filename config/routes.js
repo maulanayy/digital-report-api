@@ -32,6 +32,7 @@ module.exports.routes = {
   //Lab
   "get /lab" : "LabController.getAll",
   "get /lab/:id" : "LabController.getOne",
+  "get /lab/code" : "LabController.getCode",
   "post /lab" : "LabController.create",
   "put /lab/:id" : "LabController.update",
   "delete /lab/:id" : "LabController.delete",
@@ -39,6 +40,7 @@ module.exports.routes = {
   //Area
   "get /area" : "AreaController.getAll",
   "get /area/:id" : "AreaController.getOne",
+  "get /area/code" : "AreaController.getCode",
   "post /area" : "AreaController.create",
   "put /area/:id" : "AreaController.update",
   "delete /area/:id" : "AreaController.delete",
@@ -46,6 +48,7 @@ module.exports.routes = {
   //Control Point
   "get /control-point" : "ControlPointController.getAll",
   "get /control-point/:id" : "ControlPointController.getOne",
+  "get /control-point/code" : "ControlPointController.getCode",
   "post /control-point" : "ControlPointController.create",
   "put /control-point/:id" : "ControlPointController.update",
   "delete /control-point/:id" : "ControlPointController.delete",
@@ -63,10 +66,14 @@ module.exports.routes = {
   "get /setting/ewon/:id"  : "SettingController.getOneEwon",
   "get /setting/oracle" : "SettingController.getOracle",
   "get /setting/oracle/:id"  : "SettingController.getOneOracle",
+  "get /setting/parameter" : "SettingController.getParameter",
+  "get /setting/parameter/:id" : "SettingController.getOneParameter",
+  "post /setting/parameter" : "SettingController.createParameter",
   "post /setting/ewon" : "SettingController.createEwon",
   "post /setting/oracle" : "SettingController.createOracle",
   "put /setting/ewon/:id" : "SettingController.updateEwon",
   "put /setting/oracle/:id" : "SettingController.updateOracle",
+  "put /setting/parameter/:id" : "SettingController.updateParameter",
 
   //Permission
   "get /permission" : "PermissionController.getAll"

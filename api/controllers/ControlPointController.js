@@ -21,10 +21,21 @@ module.exports = {
 
       const count = await M_Control_points.count(query);
       if (count > 0) {
-        controlPoints = await M_Control_points.find(query)
-          .skip(pagination.page * pagination.limit)
-          .limit(pagination.limit)
-          .sort(sort);
+        // controlPoints = await M_Control_points.find(query)
+        //   .skip(pagination.page * pagination.limit)
+        //   .limit(pagination.limit)
+        //   .sort(sort);
+
+        const queries = await sails.sendNativeQuery(
+          `
+        SELECT m_control_points."intControlPointID" as id,m_control_points."txtName" as txtName, 
+        m_areas."txtName" as areaTxtName,m_control_points."dtmCreatedAt" as dtmCreatedAt from m_areas,m_control_points where m_control_points."dtmDeletedAt" is NULL 
+        AND m_areas."intAreaID" = m_control_points."intAreaID" order by m_control_points."dtmCreatedAt" DESC offset $1 limit $2
+          `,
+          [pagination.page * pagination.limit, pagination.limit]
+        );
+
+        controlPoints = queries.rows;
       }
 
       const numberOfPages = Math.ceil(count / pagination.limit);
@@ -79,12 +90,36 @@ module.exports = {
       });
     }
   },
+  getCode: async (req, res) => {
+    try {
+      const controlPoints = await M_Control_points.find({
+        where: {
+          dtmDeletedAt: null,
+        },
+        select: ["id", "txtName"],
+      });
+
+      const data = {
+        data: controlPoints,
+      };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   create: async (req, res) => {
     const { user } = req;
     let { body } = req;
     try {
       const data = await M_Control_points.create({
         txtName: body.name,
+        intAreaID: body.area_id,
         // txtCreatedBy: user.id,
       }).fetch();
 
@@ -119,6 +154,7 @@ module.exports = {
         id: params.id,
       }).set({
         txtName: body.name,
+        intAreaID: body.area_id,
         // txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });

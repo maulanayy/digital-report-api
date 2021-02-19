@@ -82,6 +82,29 @@ module.exports = {
       });
     }
   },
+  getCode: async (req, res) => {
+    try {
+      const labs = await M_Lab.find({
+        where : {
+          dtmDeletedAt : null
+        },
+        select : ["id","txtName"]
+      })
+     
+      const data = {
+        data: labs,
+      };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   create: async (req, res) => {
     const { user } = req;
     let { body } = req;
