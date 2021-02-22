@@ -76,6 +76,9 @@ module.exports.routes = {
   "put /setting/ewon/:id" : "SettingController.updateEwon",
   "put /setting/oracle/:id" : "SettingController.updateOracle",
   "put /setting/parameter/:id" : "SettingController.updateParameter",
+  "delete /setting/ewon/:id" : "SettingController.deleteEwon",
+  "delete /setting/oracle/:id" : "SettingController.deleteOracle",
+  "delete /setting/parameter/:id" : "SettingController.deleteParameter",
 
   //Permission
   "get /permission" : "PermissionController.getAll"
