@@ -231,6 +231,32 @@ module.exports = {
       });
     }
   },
+  getParameterByCP : async (req,res) => {
+    const { cp_id } = req.params;
+    try {
+      const queries = await sails.sendNativeQuery(
+        `
+        select m_parameter."intParameterID" as ID, m_parameter."txtName" as parameter_name,m_parameter."intEwonSubsSettingID" as ewon_id,max(m_ewon_subscriber."intValue") as value from m_parameter,m_ewon_subscriber 
+        where m_parameter."intControlPointID" = $1 and m_parameter."intEwonSubsSettingID" = m_ewon_subscriber."intEwonSubsSettingID" group by m_parameter."intParameterID"
+        `,
+        [cp_id]
+      );
+      const params = queries.rows;
+
+      const data = {
+        data: params,
+      };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   getEwonCode: async (req, res) => {
     try {
       const topics = await M_Ewon_subscriber_setting.find({

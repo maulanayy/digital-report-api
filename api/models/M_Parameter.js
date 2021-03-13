@@ -23,6 +23,10 @@ module.exports = {
     intControlPointID : {
       type : "number",
       columnName : "intControlPointID"
+    },
+    txtFile : {
+      type : "string",
+      columnName : "txtFile", 
     }
   },
 };

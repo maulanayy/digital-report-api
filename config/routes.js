@@ -47,6 +47,7 @@ module.exports.routes = {
 
   //Control Point
   "get /control-point" : "ControlPointController.getAll",
+  "get /control-point/parameter" : "ControlPointController.getAllWithParameter",
   "get /control-point/:id" : "ControlPointController.getOne",
   "get /control-point/code" : "ControlPointController.getCode",
   "post /control-point" : "ControlPointController.create",
@@ -70,6 +71,7 @@ module.exports.routes = {
   "get /setting/oracle/:id"  : "SettingController.getOneOracle",
   "get /setting/parameter" : "SettingController.getParameter",
   "get /setting/parameter/:id" : "SettingController.getOneParameter",
+  "get /setting/parameter/:cp_id/control-point" : "SettingController.getParameterByCP",
   "post /setting/parameter" : "SettingController.createParameter",
   "post /setting/ewon" : "SettingController.createEwon",
   "post /setting/oracle" : "SettingController.createOracle",

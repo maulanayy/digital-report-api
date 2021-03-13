@@ -64,6 +64,30 @@ module.exports = {
       });
     }
   },
+  getAllWithParameter: async (req, res) => {
+    try {
+      const queries = await sails.sendNativeQuery(
+        `
+        select m_control_points."intControlPointID" as ID,m_control_points."txtName",count(m_parameter."intParameterID")as total_parameter from m_control_points,m_parameter 
+        where m_control_points."intControlPointID" = m_parameter."intControlPointID" group by m_control_points."intControlPointID"
+        `
+      );
+      const controlPoints = queries.rows;
+
+      const data = {
+        data: controlPoints,
+      };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   getOne: async (req, res) => {
     const { id } = req.params;
     try {

@@ -48,7 +48,7 @@ module.exports = {
       ***************************************************************************/
       default: {
         adapter: "sails-postgresql",
-        url: "postgresql://postgres:admin@localhost:5432/digital_report",
+        url: "postgresql://postgres:admin@localhost:5432/digital_report_db",
         // adapter: 'sails-mysql',
         // url: 'mysql://user:password@host:port/database',
         //--------------------------------------------------------------------------
