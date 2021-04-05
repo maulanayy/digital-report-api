@@ -12,11 +12,7 @@ module.exports = {
       columnName: "intFormID",
       autoIncrement: true,
     },
-    txtName: {
-      type: "string",
-      required: true,
-      columnName: "txtName",
-    },
+   
     txtNoDok: {
       type: "string",
       required: true,
@@ -62,9 +58,9 @@ module.exports = {
       type : "string",
       columnName : "txtRemark"
     },
-    intAreaControlPointID : {
+    intControlPointID : {
       type: "number",
-      columnName: "intAreaControlPointID",
+      columnName: "intControlPointID",
     }
   },
 };

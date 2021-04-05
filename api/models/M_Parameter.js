@@ -16,6 +16,10 @@ module.exports = {
       type: "string",
       columnName: "txtName",
     },
+    txtTipe: {
+      type: "string",
+      columnName: "txtTipe",
+    },
     intEwonSubsSettingID: {
       type: "number",
       columnName: "intEwonSubsSettingID",

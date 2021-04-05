@@ -14,7 +14,6 @@ module.exports = {
     },
     txtName: {
       type: "string",
-      unique: true,
       columnName: "txtName",
     },
     intAreaID : {

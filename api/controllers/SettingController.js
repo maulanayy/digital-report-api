@@ -5,6 +5,7 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+
 module.exports = {
   getEwon: async (req, res) => {
     const { page, limit } = req.query;
@@ -42,6 +43,109 @@ module.exports = {
         data: ewondData,
         meta: meta,
       };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getOneEwon: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const data = await M_Ewon_subscriber_setting.findOne({
+        where: {
+          id: id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!data) {
+        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getEwonCode: async (req, res) => {
+    try {
+      const topics = await M_Ewon_subscriber_setting.find({
+        where: {
+          dtmDeletedAt: null,
+        },
+        select: ["id", "txtTopic"],
+      });
+
+      const data = {
+        data: topics,
+      };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  createEwon: async (req, res) => {
+    const { user } = req;
+    let { body } = req;
+    try {
+      const data = await M_Ewon_subscriber_setting.create({
+        txtTopic: body.topic,
+        txtTypeTopic: body.type_topic,
+      }).fetch();
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  updateEwon: async (req, res) => {
+    const { user, params } = req;
+    let { body } = req;
+    try {
+      const ewon = await M_Ewon_subscriber_setting.findOne({
+        where: {
+          id: params.id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!ewon) {
+        sails.helpers.errorResponse("ewon not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      const data = await M_Ewon_subscriber_setting.update({
+        id: params.id,
+      }).set({
+        txtTopic: body.topic,
+        txtTypeTopic: body.type_topic,
+        dtmUpdatedAt: new Date(),
+      });
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -100,6 +204,91 @@ module.exports = {
       });
     }
   },
+  
+  getOneOracle: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const data = await M_Oracle.findOne({
+        where: {
+          id: id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!data) {
+        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  createOracle: async (req, res) => {
+    const { user } = req;
+    let { body } = req;
+    try {
+      const data = await M_Oracle.create({
+        txtHost: body.host,
+        txtIP: body.ip,
+        txtPassword: body.password,
+      }).fetch();
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  updateOracle: async (req, res) => {
+    const { user, params } = req;
+    let { body } = req;
+    try {
+      const oracle = await M_Oracle.findOne({
+        where: {
+          id: params.id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!oracle) {
+        sails.helpers
+          .errorResponse("oracle data not found", "failed")
+          .then((resp) => {
+            res.status(401).send(resp);
+          });
+      }
+
+      const data = await M_Oracle.update({
+        id: params.id,
+      }).set({
+        txtHost: body.host,
+        txtIP: body.ip,
+        txtPassword: body.password,
+        dtmUpdatedAt: new Date(),
+      });
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   getParameter: async (req, res) => {
     const { page, limit } = req.query;
     let query = {
@@ -117,10 +306,10 @@ module.exports = {
 
         const queries = await sails.sendNativeQuery(
           `
-          SELECT m_parameter."intParameterID" as id,m_parameter."txtName" as txtName,
-          m_ewon_subscriber_setting."txtTopic" as txtTopic,m_control_points."txtName" as ControlPointTxtName,m_parameter."dtmCreatedAt" as dtmCreatedAt
-          from m_parameter,m_ewon_subscriber_setting,m_control_points where m_parameter."intEwonSubsSettingID" = m_ewon_subscriber_setting."intEwonSubsSettingID" 
-          AND m_parameter."intControlPointID" = m_control_points."intControlPointID" AND m_parameter."dtmDeletedAt" is NULL  order by m_parameter."dtmCreatedAt" DESC offset $1 limit $2
+          SELECT m_parameter.intParameterID as id,m_parameter.txtName as txtName,m_parameter.txtTipe as txtTipe,
+          m_ewon_subscriber_setting.txtTopic as txtTopic,m_control_points.txtName as ControlPointTxtName,m_parameter.dtmCreatedAt as dtmCreatedAt
+          from m_parameter,m_ewon_subscriber_setting,m_control_points where m_parameter.intControlPointID = m_control_points.intControlPointID 
+          OR m_parameter.intEwonSubsSettingID = m_ewon_subscriber_setting.intEwonSubsSettingID AND m_parameter.dtmDeletedAt is NULL  order by m_parameter.dtmCreatedAt DESC LIMIT $2 OFFSET $1
             `,
           [pagination.page * pagination.limit, pagination.limit]
         );
@@ -142,58 +331,6 @@ module.exports = {
         data: parameterData,
         meta: meta,
       };
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  getOneEwon: async (req, res) => {
-    const { id } = req.params;
-    try {
-      const data = await M_Ewon_subscriber_setting.findOne({
-        where: {
-          id: id,
-          dtmDeletedAt: null,
-        },
-      });
-
-      if (!data) {
-        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
-          res.status(401).send(resp);
-        });
-      }
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  getOneOracle: async (req, res) => {
-    const { id } = req.params;
-    try {
-      const data = await M_Oracle.findOne({
-        where: {
-          id: id,
-          dtmDeletedAt: null,
-        },
-      });
-
-      if (!data) {
-        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
-          res.status(401).send(resp);
-        });
-      }
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -247,67 +384,7 @@ module.exports = {
         data: params,
       };
 
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  getEwonCode: async (req, res) => {
-    try {
-      const topics = await M_Ewon_subscriber_setting.find({
-        where: {
-          dtmDeletedAt: null,
-        },
-        select: ["id", "txtTopic"],
-      });
-
-      const data = {
-        data: topics,
-      };
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  createEwon: async (req, res) => {
-    const { user } = req;
-    let { body } = req;
-    try {
-      const data = await M_Ewon_subscriber_setting.create({
-        txtTopic: body.topic,
-        txtTypeTopic: body.type_topic,
-      }).fetch();
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  createOracle: async (req, res) => {
-    const { user } = req;
-    let { body } = req;
-    try {
-      const data = await M_Oracle.create({
-        txtHost: body.host,
-        txtIP: body.ip,
-        txtPassword: body.password,
-      }).fetch();
+      console.log(data)
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -323,84 +400,14 @@ module.exports = {
     const { user } = req;
     let { body } = req;
     try {
+
+      console.log(body)
       const data = await M_Parameter.create({
         txtName: body.name,
+        txtTipe: body.tipe,
         intEwonSubsSettingID: body.topic_ip,
         intControlPointID: body.cp_id,
       }).fetch();
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  updateEwon: async (req, res) => {
-    const { user, params } = req;
-    let { body } = req;
-    try {
-      const ewon = await M_Ewon_subscriber_setting.findOne({
-        where: {
-          id: params.id,
-          dtmDeletedAt: null,
-        },
-      });
-
-      if (!ewon) {
-        sails.helpers.errorResponse("ewon not found", "failed").then((resp) => {
-          res.status(401).send(resp);
-        });
-      }
-
-      const data = await M_Ewon_subscriber_setting.update({
-        id: params.id,
-      }).set({
-        txtTopic: body.topic,
-        txtTypeTopic: body.type_topic,
-        dtmUpdatedAt: new Date(),
-      });
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  updateOrale: async (req, res) => {
-    const { user, params } = req;
-    let { body } = req;
-    try {
-      const oracle = await M_Oracle.findOne({
-        where: {
-          id: params.id,
-          dtmDeletedAt: null,
-        },
-      });
-
-      if (!oracle) {
-        sails.helpers
-          .errorResponse("oracle data not found", "failed")
-          .then((resp) => {
-            res.status(401).send(resp);
-          });
-      }
-
-      const data = await M_Oracle.update({
-        id: params.id,
-      }).set({
-        txtHost: body.host,
-        txtIP: body.ip,
-        txtPassword: body.password,
-        dtmUpdatedAt: new Date(),
-      });
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -449,5 +456,149 @@ module.exports = {
         res.status(400).send(resp);
       });
     }
-  }
+  },
+  getFormSetting: async (req, res) => {
+    const { page, limit } = req.query;
+    let query = {
+      dtmDeletedAt: null,
+    };
+    const sort = req.query.sort ? req.query.sort : "dtmCreatedAt DESC";
+    try {
+      let oracleData = [];
+      const pagination = {
+        page: parseInt(page) - 1 || 0,
+        limit: parseInt(limit) || 20,
+      };
+
+      const count = await M_Form.count(query);
+      if (count > 0) {
+        oracleData = await M_Form.find(query)
+          .skip(pagination.page * pagination.limit)
+          .limit(pagination.limit)
+          .sort(sort);
+      }
+
+      const numberOfPages = Math.ceil(count / pagination.limit);
+      const nextPage = parseInt(page) + 1;
+      const meta = {
+        page: parseInt(page),
+        perPage: pagination.limit,
+        previousPage: parseInt(page) > 1 ? parseInt(page) - 1 : false,
+        nextPage: numberOfPages >= nextPage ? nextPage : false,
+        pageCount: numberOfPages,
+        total: count,
+      };
+
+      const data = {
+        data: oracleData,
+        meta: meta,
+      };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getOneFormSetting : async (req,res) => {
+    const { id } = req.params;
+    try {
+      const data = await M_Form.findOne({
+        where: {
+          id: id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!data) {
+        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getParameterForm : async (req,res) => {
+    const { id } = req.params;
+    try {
+      const data = await M_Form_Parameter.find({
+        where: {
+          id: id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!data) {
+        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  createFormSetting: async (req, res) => {
+    const { user } = req;
+    let { body } = req;
+    try {
+      const data = await M_Form.create({
+        txtNoDok : body.noDok,
+        txtOKP : body.okp,
+        txtRevision : body.revision,
+        txtProductName : body.produk_name,
+        dtmDateExpired : body.date_expired,
+        txtRemark : body.remark,
+        intControlPointID: body.cp_id,
+      }).fetch();
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  createFormVariableSetting: async (req, res) => {
+    const { user } = req;
+    let { body } = req;
+    try {
+      const data = await M_Parameter.create({
+        txtName: body.name,
+        txtTipe: body.tipe,
+        intEwonSubsSettingID: body.topic_ip,
+        intControlPointID: body.cp_id,
+      }).fetch();
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
 };

@@ -20,6 +20,7 @@ module.exports = {
       };
 
       const count = await M_Areas.count(query);
+      console.log("COUNT : ",count)
       if (count > 0) {
         // areas = await M_Areas.find(query)
         //   .skip(pagination.page * pagination.limit)
@@ -28,13 +29,12 @@ module.exports = {
 
         const queries = await sails.sendNativeQuery(
           `
-        SELECT m_areas."intAreaID" as id,m_areas."txtName" as txtName, 
-        m_lab."txtName" as labTxtName,m_areas."dtmCreatedAt" as dtmCreatedAt from m_areas,m_lab where m_areas."dtmDeletedAt" is NULL 
-        AND m_areas."intLabID" = m_lab."intLabID" order by m_areas."dtmCreatedAt" DESC offset $1 limit $2
-        `,
-          [pagination.page * pagination.limit, pagination.limit]
+          SELECT m_areas.intAreaID AS id,m_areas.txtName AS txtName, 
+          m_lab.txtName AS labTxtName,m_areas.dtmCreatedAt AS dtmCreatedAt FROM m_areas,m_lab WHERE m_areas.dtmDeletedAt IS NULL 
+          AND m_areas.intLabID = m_lab.intLabID ORDER BY m_areas.dtmCreatedAt DESC LIMIT $1 OFFSET $2
+            `,
+          [pagination.limit,pagination.page * pagination.limit]
         );
-
         areas = queries.rows;
       }
 
@@ -49,6 +49,7 @@ module.exports = {
         total: count,
       };
 
+      console.log(areas)
       const data = {
         data: areas,
         meta: meta,

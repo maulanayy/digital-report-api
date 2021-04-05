@@ -29,10 +29,10 @@ module.exports = {
       if (count > 0) {
         const queries = await sails.sendNativeQuery(
           `
-          SELECT m_users."intUserID" as id,m_users."txtName",m_users."txtUsername",m_users."TxtDepartment",
-          m_roles."txtName" as txtRoles,m_users."dtmCreatedAt" from m_users,m_roles where 
-          m_users."intRoleID" = m_roles."intRoleID" AND m_users."dtmDeletedAt" is null 
-          order by m_users."dtmCreatedAt" DESC offset $1 limit $2
+          SELECT m_users.intUserID as id,m_users.txtName,m_users.txtUsername,m_users.TxtDepartment,
+          m_roles.txtName as txtRoles,m_users.dtmCreatedAt from m_users,m_roles where 
+          m_users.intRoleID = m_roles.intRoleID AND m_users.dtmDeletedAt is null 
+          order by m_users.dtmCreatedAt DESC limit $2 offset $1 
               `,
           [pagination.page * pagination.limit, pagination.limit]
         );

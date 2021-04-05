@@ -18,7 +18,7 @@ module.exports = {
     },
     intFormVariableID: {
       type: "number",
-      columnName: "intFormVariableID ",
+      columnName: "intFormVariableID",
     },
     txtVariableValue : {
       type : "string",

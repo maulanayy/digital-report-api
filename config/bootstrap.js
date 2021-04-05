@@ -27,4 +27,43 @@ module.exports.bootstrap = async function() {
   // ]);
   // ```
 
+
+  const roleSuperadmin = await M_Roles.findOne({
+    where : {
+      txtName : "superadmin"
+    }
+  })
+
+
+  if (!roleSuperadmin){
+    const role = await M_Roles.create({
+        txtName: "superadmin",
+      }).fetch();
+    
+      
+      await M_Roles.createEach([
+        {txtName: "admin"},
+        {txtName: "supervisor"},
+        {txtName: "inspector"},
+        {txtName: "guest"},
+      ])
+    
+    
+      await M_Users.create({
+        txtUsername: "superadmin",
+        txtPassword: "superadmin",
+        txtName: "superadmin",
+        txtDepartment: "IT",
+        txtRelationship: "single",
+        txtSex: "Male",
+        dtmBirtDate: "1993-2-2",
+        intAge: 23,
+        intRoleID: role.id,
+        intLabID: 0,
+        intControlPointID: 0
+      })
+    } 
+  
+
+  // 
 };

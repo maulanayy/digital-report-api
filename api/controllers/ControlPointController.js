@@ -28,9 +28,9 @@ module.exports = {
 
         const queries = await sails.sendNativeQuery(
           `
-        SELECT m_control_points."intControlPointID" as id,m_control_points."txtName" as txtName, 
-        m_areas."txtName" as areaTxtName,m_control_points."dtmCreatedAt" as dtmCreatedAt from m_areas,m_control_points where m_control_points."dtmDeletedAt" is NULL 
-        AND m_areas."intAreaID" = m_control_points."intAreaID" order by m_control_points."dtmCreatedAt" DESC offset $1 limit $2
+        SELECT m_control_points.intControlPointID as id,m_control_points.txtName as txtName, 
+        m_areas.txtName as areaTxtName,m_control_points.dtmCreatedAt as dtmCreatedAt from m_areas,m_control_points where m_control_points.dtmDeletedAt is NULL 
+        AND m_areas.intAreaID = m_control_points.intAreaID order by m_control_points.dtmCreatedAt DESC LIMIT $2 OFFSET $1
           `,
           [pagination.page * pagination.limit, pagination.limit]
         );
@@ -144,7 +144,7 @@ module.exports = {
       const data = await M_Control_points.create({
         txtName: body.name,
         intAreaID: body.area_id,
-        // txtCreatedBy: user.id,
+        txtCreatedBy: user.id,
       }).fetch();
 
       sails.helpers.successResponse(data, "success").then((resp) => {

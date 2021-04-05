@@ -81,6 +81,12 @@ module.exports.routes = {
   "delete /setting/ewon/:id" : "SettingController.deleteEwon",
   "delete /setting/oracle/:id" : "SettingController.deleteOracle",
   "delete /setting/parameter/:id" : "SettingController.deleteParameter",
+  "get /setting/form" : "SettingController.getFormSetting",
+  "get /setting/form/:id" : "SettingController.getOneFormSetting",
+  "get /setting/form/:id/parameter" : "SettingController.getParameterForm",
+  "post /setting/form" : "SettingController.createFormSetting",
+  "post /setting/form/variable" : "SettingController.createFormVariableSetting",
+  
 
   //Permission
   "get /permission" : "PermissionController.getAll"
