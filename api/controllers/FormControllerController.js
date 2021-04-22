@@ -5,7 +5,6 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const M_Form = require("../models/M_Form");
 
 module.exports = {
     getAll: async (req, res) => {

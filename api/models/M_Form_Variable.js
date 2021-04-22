@@ -16,10 +16,6 @@ module.exports = {
       type: "string",
       columnName: "txtVariableName",
     },
-    txtStandardValue: {
-      type: "string",
-      columnName: "txtStandardValue",
-    },
     intFormParameterID: {
       type: "number",
       columnName: "intFormParameterID",

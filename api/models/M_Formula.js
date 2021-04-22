@@ -1,5 +1,5 @@
 /**
- * M_Form_Parameter.js
+ * M_Formula.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
@@ -10,21 +10,23 @@ module.exports = {
   attributes: {
     id: {
       type: "number",
-      columnName: "intFormParameterID",
+      columnName: "intFormulaID",
       autoIncrement: true,
     },
     intParameterID: {
-      type : "number",
-      columnName : "intParameterID"
+      type: "number",
+      columnName: "intParameterID",
     },
-    txtParameterName: {
+    intParameterFormulaID: {
+      type: "number",
+      required: true,
+      columnName: "intParameterFormulaID",
+    },  
+    txtOperator: {
       type: "string",
-      columnName: "txtParameterName",
-    },
-    intFormID : {
-      type : "number",
-      columnName : "intFormID"
-    }
+      required: true,
+      columnName: "txtOperator",
+    },  
   },
 
 };

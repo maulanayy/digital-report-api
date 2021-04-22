@@ -12,21 +12,15 @@ module.exports = {
       columnName: "intFormID",
       autoIncrement: true,
     },
-   
+    txtFormName : {
+      type : "string",
+      required: true,
+      columnName: "txtFormName",
+    },
     txtNoDok: {
       type: "string",
       required: true,
       columnName: "txtNoDok",
-    },
-    txtRevision: {
-      type: "string",
-      required: true,
-      columnName: "txtRevision",
-    },
-    dtmDateExpired: {
-      type: "ref",
-      columnType: "date",
-      columnName: "dtmDateExpired",
     },
     txtProductName: {
       type: "string",
@@ -37,23 +31,7 @@ module.exports = {
       type: "string",
       columnName: "txtOKP",
     },
-    txtProductDesc: {
-      type: "string",
-      columnName: "txtProductDesc",
-    },
-    dtmProductionDate: {
-      type: "ref",
-      columnType: "date",
-      columnName: "dtmProductionDate",
-    },
-    txtPreparedBy : {
-      type : "string",
-      columnName : "txtPreparedBy"
-    },
-    txtApprovedBy : {
-      type : "string",
-      columnName : "txtApprovedBy"
-    },
+    
     txtRemark : {
       type : "string",
       columnName : "txtRemark"

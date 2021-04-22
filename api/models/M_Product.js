@@ -1,5 +1,5 @@
 /**
- * M_Form_Parameter.js
+ * M_Product.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
@@ -10,21 +10,15 @@ module.exports = {
   attributes: {
     id: {
       type: "number",
-      columnName: "intFormParameterID",
+      columnName: "intProductID",
       autoIncrement: true,
     },
-    intParameterID: {
-      type : "number",
-      columnName : "intParameterID"
-    },
-    txtParameterName: {
+    txtName: {
       type: "string",
-      columnName: "txtParameterName",
-    },
-    intFormID : {
-      type : "number",
-      columnName : "intFormID"
-    }
+      required: true,
+      unique: true,
+      columnName: "txtName",
+    },  
   },
 
 };

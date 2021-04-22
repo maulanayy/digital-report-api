@@ -68,9 +68,8 @@ module.exports = {
     try {
       const queries = await sails.sendNativeQuery(
         `
-        select m_control_points."intControlPointID" as ID,m_control_points."txtName",count(m_parameter."intParameterID")as total_parameter from m_control_points,m_parameter 
-        where m_control_points."intControlPointID" = m_parameter."intControlPointID" group by m_control_points."intControlPointID"
-        `
+        SELECT m_control_points.intControlPointID AS ID,m_control_points.txtName,COUNT(m_parameter.intParameterID)AS total_parameter FROM m_control_points,m_parameter 
+        WHERE m_control_points.intControlPointID = m_parameter.intControlPointID GROUP BY m_control_points.intControlPointID `
       );
       const controlPoints = queries.rows;
 
@@ -141,10 +140,11 @@ module.exports = {
     const { user } = req;
     let { body } = req;
     try {
+      console.log(user)
       const data = await M_Control_points.create({
         txtName: body.name,
         intAreaID: body.area_id,
-        txtCreatedBy: user.id,
+        // txtCreatedBy: user.id,
       }).fetch();
 
       sails.helpers.successResponse(data, "success").then((resp) => {

@@ -204,9 +204,10 @@ module.exports = {
         where: { txtUsername: body.username },
         select: ["id", "txtName", "txtUsername", "txtPassword"],
       });
+      console.log(user)
       if (!user) {
         sails.helpers
-          .errorResponse(err.message, "user not found")
+          .errorResponse("", "user not found")
           .then((resp) => {
             res.status(400).send(resp);
           });
