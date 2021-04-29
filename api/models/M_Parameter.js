@@ -26,10 +26,10 @@ module.exports = {
       enum: ["number", "text"],
       columnName: "txtTipeData",
     },
-    txtOracleParameter : {
-      type : "string",
-      columnName : "txtOracleParameter"
-    },
+    // txtOracleParameter : {
+    //   type : "string",
+    //   columnName : "txtOracleParameter"
+    // },
     txtStandardText : {
       type: "string",
       columnName: "txtStandardText",

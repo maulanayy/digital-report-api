@@ -53,10 +53,10 @@ module.exports.datastores = {
 
   },
 
-  oracle : {
-    adapter : 'sails-oracle',
-    url: "oracle://XXKMIDQM:ora3won01@10.104.50.30:1521/KMIPROD"
-  }
+  // oracle : {
+  //   adapter : 'sails-oracle',
+  //   url: "oracle://XXKMIDQM:ora3won01@10.104.50.30:1521/KMIPROD"
+  // }
 
 
 };

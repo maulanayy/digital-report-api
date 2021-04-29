@@ -5,8 +5,6 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const M_Form_Variable = require("../models/M_Form_Variable");
-
 module.exports = {
   getFormSetting: async (req, res) => {
     const { page, limit } = req.query;
@@ -58,7 +56,7 @@ module.exports = {
       });
     }
   },
-  getFormData : async (req,res) => {
+  getFormData: async (req, res) => {
     const { page, limit } = req.query;
     let query = {
       dtmDeletedAt: null,
@@ -148,6 +146,26 @@ module.exports = {
         });
       }
 
+      const variable = await M_Form_Variable.findOne({
+        where: {
+          intFormParameterID: id,
+          dtmDeletedAt: null,
+        },
+        select : ["id","txtVariableName","intFormParameterID"]
+      });
+      
+      data['variable'] = variable
+      
+      const listParameter = await M_Form_Parameter.find({
+        where: {
+          intFormID: id,
+          dtmDeletedAt: null,
+        },
+        select : ["id","intFormID","intParameterID","txtParameterName"]
+      }); 
+
+      data['parameter'] = listParameter
+      
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -161,15 +179,16 @@ module.exports = {
   getParameterForm: async (req, res) => {
     const { id } = req.params;
     try {
-      const parameters = await M_Form_Parameter.find({
-        where: {
-          intFormID: id,
-          dtmDeletedAt: null,
-        },
-      });
+
+      const queries = await sails.sendNativeQuery(
+        `
+        SELECT m_form_parameter.intParameterID, m_form_parameter.txtParameterName,m_parameter.txtTipe 
+        FROM m_form_parameter,m_parameter WHERE m_form_parameter.intParameterID = m_parameter.intParameterID
+        `
+      )
 
       const data = {
-        data: parameters,
+        data: queries.rows,
       };
 
       sails.helpers.successResponse(data, "success").then((resp) => {
@@ -201,7 +220,7 @@ module.exports = {
         txtVariableName: body.variable,
         intFormParameterID: form.id,
       }).fetch();
-
+      
       for (let x = 0; x < body.dataParameter.length; x++) {
         const element = body.dataParameter[x];
 
@@ -210,10 +229,10 @@ module.exports = {
           txtParameterName: element.parameter,
           intFormID: form.id,
         });
-
-        await M_Form_Parameter.createEach(parameters).fetch();
       }
-
+      
+      console.log(parameters)
+      await M_Form_Parameter.createEach(parameters).fetch();
       sails.helpers.successResponse(form, "success").then((resp) => {
         res.ok(resp);
       });
@@ -224,10 +243,8 @@ module.exports = {
       });
     }
   },
-  
-  createFormData : async (req,res) => {
 
-  },
+  createFormData: async (req, res) => {},
   createFormVariableSetting: async (req, res) => {
     const { user } = req;
     let { body } = req;
@@ -347,10 +364,10 @@ module.exports = {
       });
 
       await M_Form_Parameter.update({
-        intFormID : params.id
+        intFormID: params.id,
       }).set({
         dtmDeletedAt: new Date(),
-      })
+      });
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
