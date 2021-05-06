@@ -107,6 +107,66 @@ module.exports = {
       });
     }
   },
+  getOneFormData: async (req, res) => {
+    const { params } = req;
+    console.log(params);
+    try {
+      const data = await M_Form_Input.findOne({
+        where: {
+          dtmDeletedAt: null,
+          id: params.id,
+        },
+      });
+
+      if (!data) {
+        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      const queries = await sails.sendNativeQuery(
+        `
+        SELECT m_form_input.intFormInputID as id ,m_form.intFormID AS intFormID,m_form.txtFormName,m_form.txtNoDok,m_product.txtName AS txtNameProduct,m_form.txtOkp,m_form_input.dtmProductionDate AS dtmProductionDate,
+        m_form_input.dtmDateExpired AS dtmDateExpired,m_form_input.txtApprovedBy,m_form_input.txtProductDesc AS txtProductDesc FROM m_form,m_product,m_form_input
+        WHERE  m_form_input.intFormID = m_form.intFormID AND m_product.intProductID = m_form.txtProductName AND m_form.dtmDeletedAt IS NULL AND m_form_input.intFormInputID = $1
+                `,
+        [data.id]
+      );
+      let formData = queries.rows[0];
+
+      const variable = await M_Form_Variable_Value.find({
+        where: {
+          intFormVariableID: params.id,
+          dtmDeletedAt: null,
+        },
+        select: ["id", "txtParameterVariableName", "intFormVariableID","txtVariableValue"],
+      });
+
+      formData["variable"] = variable;
+
+      const queriesParameter = await sails.sendNativeQuery(
+        `
+        SELECT m_form_parameter.intParameterID, m_form_parameter.txtParameterName,m_parameter.txtTipe 
+        FROM m_form_parameter,m_parameter WHERE m_form_parameter.intParameterID = m_parameter.intParameterID
+        AND m_form_parameter.intFormID = $1
+        `,
+        [data.intFormID]
+      );
+
+      const listParameter = queriesParameter.rows;
+
+      formData["parameter"] = listParameter;
+
+      sails.helpers.successResponse(formData, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   getFormSettingCode: async (req, res) => {
     try {
       const forms = await M_Form.find({
@@ -133,12 +193,16 @@ module.exports = {
   getOneFormSetting: async (req, res) => {
     const { id } = req.params;
     try {
-      const data = await M_Form.findOne({
-        where: {
-          id: id,
-          dtmDeletedAt: null,
-        },
-      });
+      const queriesForm = await sails.sendNativeQuery(
+        `
+          SELECT m_form.intFormID as id,m_form.txtNoDok,m_form.txtOKP,m_product.txtName 
+          FROM m_form,m_product where m_form.txtProductName = m_product.intProductID
+          AND m_form.intFormID = $1
+        `,
+        [id]
+      );
+
+      const data = queriesForm.rows[0];
 
       if (!data) {
         sails.helpers.errorResponse("data not found", "failed").then((resp) => {
@@ -151,21 +215,24 @@ module.exports = {
           intFormParameterID: id,
           dtmDeletedAt: null,
         },
-        select : ["id","txtVariableName","intFormParameterID"]
+        select: ["id", "txtVariableName", "intFormParameterID"],
       });
-      
-      data['variable'] = variable
-      
-      const listParameter = await M_Form_Parameter.find({
-        where: {
-          intFormID: id,
-          dtmDeletedAt: null,
-        },
-        select : ["id","intFormID","intParameterID","txtParameterName"]
-      }); 
 
-      data['parameter'] = listParameter
-      
+      data["variable"] = variable;
+
+      const queries = await sails.sendNativeQuery(
+        `
+        SELECT m_form_parameter.intParameterID, m_form_parameter.txtParameterName,m_parameter.txtTipe 
+        FROM m_form_parameter,m_parameter WHERE m_form_parameter.intParameterID = m_parameter.intParameterID
+        AND m_form_parameter.intFormID = $1
+        `,
+        [id]
+      );
+
+      const listParameter = queries.rows;
+
+      data["parameter"] = listParameter;
+
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -179,13 +246,12 @@ module.exports = {
   getParameterForm: async (req, res) => {
     const { id } = req.params;
     try {
-
       const queries = await sails.sendNativeQuery(
         `
         SELECT m_form_parameter.intParameterID, m_form_parameter.txtParameterName,m_parameter.txtTipe 
         FROM m_form_parameter,m_parameter WHERE m_form_parameter.intParameterID = m_parameter.intParameterID
         `
-      )
+      );
 
       const data = {
         data: queries.rows,
@@ -220,7 +286,7 @@ module.exports = {
         txtVariableName: body.variable,
         intFormParameterID: form.id,
       }).fetch();
-      
+
       for (let x = 0; x < body.dataParameter.length; x++) {
         const element = body.dataParameter[x];
 
@@ -230,8 +296,7 @@ module.exports = {
           intFormID: form.id,
         });
       }
-      
-      console.log(parameters)
+
       await M_Form_Parameter.createEach(parameters).fetch();
       sails.helpers.successResponse(form, "success").then((resp) => {
         res.ok(resp);
@@ -244,7 +309,81 @@ module.exports = {
     }
   },
 
-  createFormData: async (req, res) => {},
+  createFormData: async (req, res) => {
+    const { user } = req;
+    let { body } = req;
+    let parameterValue = [];
+    let variableValue = [];
+    try {
+      const form = await M_Form_Input.create({
+        intFormID: body.form,
+        txtRevision: "-",
+        dtmDateExpired: body.expired_date,
+        txtProductDesc: body.product_desc,
+        dtmProductionDate: body.product_date,
+        txtPreparedBy: "",
+        txtApprovedBy: "",
+      }).fetch();
+
+
+      for (let x = 0; x < body.parameter_value.length; x++) {
+        const element = body.parameter_value[x];
+        const keys = Object.keys(element);
+        variableValue.push({
+          txtParameterVariableName: keys[0],
+          intFormVariableID:element[keys[0]].id,
+          intFormInputID: form.id,
+          txtVariableValue: element[keys[0]].value,
+        });
+
+        for (let index = 1; index < keys.length-1; index++) {
+          const param = keys[index];
+          parameterValue.push({
+            txtParameterName : param,
+            intFormInputID : form.id,
+            intFormParameterID : element[param].id,
+            txtParameterValue : element[param].value
+          })
+        }
+      }
+
+      await M_Form_Variable_Value.createEach(variableValue).fetch();
+
+      await M_Form_Parameter_Value.createEach(parameterValue).fetch();
+      sails.helpers.successResponse(form, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  updateFormData: async (req, res) => {
+    const { user } = req;
+    let { body, params } = req;
+    try {
+      const form = await M_Form_Input.create({
+        intFormID: body.form,
+        txtRevision: "-",
+        dtmDateExpired: body.expired_date,
+        txtProductDesc: body.product_desc,
+        dtmProductionDate: body.product_date,
+        txtPreparedBy: "",
+        txtApprovedBy: "",
+      }).fetch();
+
+      sails.helpers.successResponse(form, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   createFormVariableSetting: async (req, res) => {
     const { user } = req;
     let { body } = req;

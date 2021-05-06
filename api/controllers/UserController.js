@@ -106,7 +106,6 @@ module.exports = {
         intAge: body.age,
         intRoleID: body.role,
         intLabID: body.lab,
-        intControlPointID: body.control_point,
         // txtCreatedBy: user.id,
       }).fetch();
 
@@ -148,7 +147,6 @@ module.exports = {
         intAge: body.age,
         intRoleID: body.role,
         intLabID: body.lab,
-        intControlPointID: body.control_point,
         // txtUpdatedBy: user.id,
         updatedAt: new Date(),
       });

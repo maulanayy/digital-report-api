@@ -56,10 +56,6 @@ module.exports = {
       type: "number",
       columnName: "intLabID",
     },
-    intControlPointID: {
-      type: "number",
-      columnName: "intControlPointID",
-    },
   },
 
   beforeCreate: function (valuesToSet, proceed) {

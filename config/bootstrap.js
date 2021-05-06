@@ -45,6 +45,7 @@ module.exports.bootstrap = async function() {
         {txtName: "admin"},
         {txtName: "supervisor"},
         {txtName: "inspector"},
+        {txtName: "leader"},
         {txtName: "guest"},
       ])
     
@@ -60,7 +61,6 @@ module.exports.bootstrap = async function() {
         intAge: 23,
         intRoleID: role.id,
         intLabID: 0,
-        intControlPointID: 0
       })
     } 
   
