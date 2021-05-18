@@ -84,8 +84,6 @@ module.exports.routes = {
   "get /form-data/:id": "FormParameterController.getOneFormData",
   "get /form-parameter": "FormParameterController.getFormSetting",
   "get /form-parameter/code": "FormParameterController.getFormSettingCode",
-  "get /form-parameter/parameter/:id":
-    "FormParameterController.getFormParameterCode",
   "get /form-parameter/:id": "FormParameterController.getOneFormSetting",
   "get /form-parameter/:id/parameter":
     "FormParameterController.getParameterForm",

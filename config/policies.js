@@ -18,14 +18,30 @@ module.exports.policies = {
   ***************************************************************************/
 
   '*': true,
-  // UserController : {
-  //   login : true,
-  //   "*" : "isAuthenticated"
-  // },
-  // LabController : {
-  //   "*" : "isAuthenticated"
-  // },
-  // AreaController : {
-  //   "*" : "isAuthenticated"
-  // }
+  UserController : {
+    login : true,
+    "*" : "isAuthenticated"
+  },
+  LabController : {
+    "*" : "isAuthenticated"
+  },
+  AreaController : {
+    "*" : "isAuthenticated"
+  },
+  ControlPointController : {
+    "*" : "isAuthenticated"
+  },
+  FormParameterController : {
+    "*" : "isAuthenticated"
+  },
+  ParameterController : {
+    "*" : "isAuthenticated"
+  },
+  SettingController : {
+    "*" : "isAuthenticated"
+  },
+  ShiftController : {
+    "*" : "isAuthenticated"
+  }
+
 };
