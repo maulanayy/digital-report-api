@@ -15,7 +15,6 @@ module.exports = {
     },
     txtRevision: {
       type: "string",
-      required: true,
       columnName: "txtRevision",
     },
     dtmDateExpired: {

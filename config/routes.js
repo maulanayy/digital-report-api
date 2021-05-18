@@ -76,20 +76,22 @@ module.exports.routes = {
   "get /parameter/:cp_id/control-point": "ParameterController.getParameterByCP",
   "post /parameter": "ParameterController.createParameter",
   "put /parameter/:id": "ParameterController.updateParameter",
-  "delete /parameter/:id" : "ParameterController.deleteParameter",
+  "delete /parameter/:id": "ParameterController.deleteParameter",
 
   //Form
 
-  "get /form-data" : "FormParameterController.getFormData",
+  "get /form-data": "FormParameterController.getFormData",
+  "get /form-data/:id": "FormParameterController.getOneFormData",
   "get /form-parameter": "FormParameterController.getFormSetting",
   "get /form-parameter/code": "FormParameterController.getFormSettingCode",
-  "get /form-parameter/parameter/:id": "FormParameterController.getFormParameterCode",
   "get /form-parameter/:id": "FormParameterController.getOneFormSetting",
-  "get /form-parameter/:id/parameter": "FormParameterController.getParameterForm",
+  "get /form-parameter/:id/parameter":
+    "FormParameterController.getParameterForm",
   "post /form-parameter": "FormParameterController.createFormSetting",
-  "put /form-parameter/:id" : "FormParameterController.updateFormSetting",
-  "delete /form-parameter/:id" : "FormParameterController.deleteFormSetting",
-  "post /form-data" : "FormParameterController.createFormData",
+  "put /form-parameter/:id": "FormParameterController.updateFormSetting",
+  "delete /form-parameter/:id": "FormParameterController.deleteFormSetting",
+  "post /form-data": "FormParameterController.createFormData",
+  "post /form-data/:id": "FormParameterController.updateFormData",
   "post /form/variable": "FormParameterController.createFormVariableSetting",
 
   //Setting
@@ -105,11 +107,17 @@ module.exports.routes = {
   "put /setting/oracle/:id": "SettingController.updateOracle",
   "delete /setting/ewon/:id": "SettingController.deleteEwon",
   "delete /setting/oracle/:id": "SettingController.deleteOracle",
-  "delete /setting/parameter/:id": "SettingController.deleteParameter",
-  
-  
+
   //Permission
   "get /permission": "PermissionController.getAll",
+
+  //shift
+
+  "get /shift": "ShiftController.getAll",
+  "get /shift/:id": "ShiftController.getOne",
+  "post /shift": "ShiftController.create",
+  "put /shift/:id": "ShiftController.update",
+  "delete /shift/:id": "ShiftController.delete",
   /***************************************************************************
    *                                                                          *
    * More custom routes here...                                               *

@@ -1,25 +1,30 @@
 /**
- * M_Areas.js
+ * M_Shift.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
 module.exports = {
+
   attributes: {
     id: {
       type: "number",
-      columnName: "intAreaID",
+      columnName: "intShiftID",
       autoIncrement: true,
     },
     txtName: {
       type: "string",
       required: true,
+      unique: true,
       columnName: "txtName",
     },
-    intLabID : {
-      type: "number",
-      columnName: "intLabID",
-    }
+    dtmJadwal: {
+      type: "ref",
+      columnType: "date", 
+      columnName: "dtmJadwal",
+    },  
   },
+
 };
+

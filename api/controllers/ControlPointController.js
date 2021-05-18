@@ -90,12 +90,16 @@ module.exports = {
   getOne: async (req, res) => {
     const { id } = req.params;
     try {
-      const data = await M_Control_points.findOne({
-        where: {
-          id: id,
-          dtmDeletedAt: null,
-        },
-      });
+
+      const queries = await sails.sendNativeQuery(
+        `
+      SELECT m_control_points.intControlPointID as id,m_control_points.txtName as txtName, 
+      m_areas.txtName as areaTxtName,m_control_points.dtmCreatedAt as dtmCreatedAt from m_areas,m_control_points where m_control_points.dtmDeletedAt is NULL 
+      AND m_areas.intAreaID = m_control_points.intAreaID AND m_control_points.intControlPointID = $1
+        `,
+        [id]
+      );
+      const data = queries.rows[0];
 
       if (!data) {
         sails.helpers.errorResponse("data not found", "failed").then((resp) => {

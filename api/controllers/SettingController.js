@@ -5,7 +5,6 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-
 module.exports = {
   getEwon: async (req, res) => {
     const { page, limit } = req.query;
@@ -157,6 +156,39 @@ module.exports = {
       });
     }
   },
+  deleteEwon: async (req, res) => {
+    const { user, params } = req;
+    let { body } = req;
+    try {
+      const ewon = await M_Ewon_subscriber_setting.findOne({
+        where: {
+          id: params.id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!ewon) {
+        sails.helpers.errorResponse("ewon not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      const data = await M_Ewon_subscriber_setting.update({
+        id: params.id,
+      }).set({
+        dtmDeletedAt: new Date(),
+      });
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   getOracle: async (req, res) => {
     const { page, limit } = req.query;
     let query = {
@@ -204,7 +236,7 @@ module.exports = {
       });
     }
   },
-  
+
   getOneOracle: async (req, res) => {
     const { id } = req.params;
     try {
@@ -289,6 +321,39 @@ module.exports = {
       });
     }
   },
-  
-  
+  deleteOracle: async (req, res) => {
+    const { user, params } = req;
+    let { body } = req;
+    try {
+      const oracle = await M_Oracle.findOne({
+        where: {
+          id: params.id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!oracle) {
+        sails.helpers
+          .errorResponse("oracle data not found", "failed")
+          .then((resp) => {
+            res.status(401).send(resp);
+          });
+      }
+
+      const data = await M_Oracle.update({
+        id: params.id,
+      }).set({
+        dtmDeletedAt: new Date(),
+      });
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
 };

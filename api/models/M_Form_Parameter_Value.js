@@ -1,32 +1,35 @@
 /**
- * M_Form_Variable_Value.js
+ * M_Form_Parameter_Value.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
 module.exports = {
+
   attributes: {
     id: {
       type: "number",
-      columnName: "intFormValueVariableID",
+      columnName: "intFormValueParameterID",
       autoIncrement: true,
     },
-    txtParameterVariableName: {
+    txtParameterName: {
       type: "string",
-      columnName: "txtParameterVariableName",
+      columnName: "txtParameterName",
     },
     intFormInputID : {
       type: "number",
       columnName: "intFormInputID",
     },
-    intFormVariableID: {
+    intFormParameterID: {
       type: "number",
-      columnName: "intFormVariableID",
+      columnName: "intFormParameterID",
     },
-    txtVariableValue : {
+    txtParameterValue : {
       type : "string",
-      columnName  : "txtVariableValue"
+      columnName  : "txtParameterValue"
     },
   },
+
 };
+

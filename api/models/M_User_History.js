@@ -16,9 +16,9 @@ module.exports = {
       type : "number",
       columnName: "intUserID",
     },
-    action : {
+    txtAction : {
       type : "string",
-      columnName : "action"
+      columnName : "txtAction"
     }
   },
 };
