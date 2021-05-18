@@ -109,10 +109,14 @@ module.exports = {
     const { user } = req;
     let { body } = req;
     try {
+      console.log("INI USER")
+      console.log(user);
       const data = await M_Lab.create({
         txtName: body.name,
-        // txtCreatedBy: user.id,
+        txtCreatedBy: user.id,
       }).fetch();
+      
+ 
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -145,7 +149,7 @@ module.exports = {
         id: params.id,
       }).set({
         txtName: body.name,
-        // txtUpdatedBy: user.id,
+        txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });
 

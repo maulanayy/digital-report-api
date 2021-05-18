@@ -5,6 +5,8 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+const M_User_History = require("../models/M_User_History");
+
 module.exports = {
   getAll: async (req, res) => {
     const { page, limit } = req.query;
@@ -20,13 +22,7 @@ module.exports = {
       };
 
       const count = await M_Areas.count(query);
-      console.log("COUNT : ",count)
       if (count > 0) {
-        // areas = await M_Areas.find(query)
-        //   .skip(pagination.page * pagination.limit)
-        //   .limit(pagination.limit)
-        //   .sort(sort);
-
         const queries = await sails.sendNativeQuery(
           `
           SELECT m_areas.intAreaID AS id,m_areas.txtName AS txtName, 
@@ -118,11 +114,17 @@ module.exports = {
     const { user } = req;
     let { body } = req;
     try {
+      console.log(user)
       const data = await M_Areas.create({
         txtName: body.name,
-        // txtCreatedBy: user.id,
+        txtCreatedBy: user.id,
         intLabID: body.lab_id,
       }).fetch();
+
+      // const history = await M_User_History.create({
+      //   intUserID : user.id,
+      //   action : ""
+      // })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -155,7 +157,7 @@ module.exports = {
         id: params.id,
       }).set({
         txtName: body.name,
-        // txtUpdatedBy: user.id,
+        txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });
 
@@ -188,7 +190,7 @@ module.exports = {
       const data = await M_Areas.update({
         id: params.id,
       }).set({
-        // txtDeletedBy: user.id,
+        txtDeletedBy: user.id,
         dtmDeletedAt: new Date(),
       });
 

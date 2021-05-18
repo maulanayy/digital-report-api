@@ -48,7 +48,7 @@ module.exports = {
       ***************************************************************************/
       default: {
         adapter: "sails-mysql",
-        url: "mysql://root:root@localhost:3306/digital_report_db",
+        url: "mysql://root:root@localhost:3306/db_digital_report",
         // adapter: 'sails-mysql',
         // url: 'mysql://user:password@host:port/database',
         //--------------------------------------------------------------------------
