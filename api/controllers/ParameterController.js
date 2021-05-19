@@ -147,6 +147,7 @@ module.exports = {
         IntStandarMin: body.numStandarMin,
         IntStandarMax: body.numStandarMax,
         intEwonSubsSettingID: body.topic_id,
+        txtCreatedBy: user.id,
         intControlPointID: body.cp_id,
       }).fetch();
 
@@ -168,6 +169,11 @@ module.exports = {
 
         console.log(dataFormula)
       }
+
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "create new parameter"
+      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -209,6 +215,7 @@ module.exports = {
         IntStandarMax: body.numStandarMax,
         intEwonSubsSettingID: body.topic_id,
         intControlPointID: body.cp_id,
+        txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });
 
@@ -235,6 +242,11 @@ module.exports = {
         console.log(dataFormula)
       }
 
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "update parameter "+params.id
+      })
+
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -246,8 +258,7 @@ module.exports = {
     }
   },
   deleteParameter: async (req, res) => {
-    const { params } = req;
-    let { body } = req;
+    const { user,params } = req;
     try {
         const parameter = await M_Parameter.findOne({
             where: {
@@ -274,9 +285,15 @@ module.exports = {
             await M_Formula.update({
                 intParameterID: params.id,
               }).set({
+                txtDeletedBy: user.id,
                 dtmDeletedAt: new Date(),
               });
           }
+
+          await M_User_History.create({
+            intUserID : user.id,
+            txtAction : user.name + "delete lab "+params.id
+          })
 
           sails.helpers.successResponse(data, "success").then((resp) => {
             res.ok(resp);

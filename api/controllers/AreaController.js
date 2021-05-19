@@ -5,8 +5,6 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const M_User_History = require("../models/M_User_History");
-
 module.exports = {
   getAll: async (req, res) => {
     const { page, limit } = req.query;
@@ -125,10 +123,10 @@ module.exports = {
         intLabID: body.lab_id,
       }).fetch();
 
-      // const history = await M_User_History.create({
-      //   intUserID : user.id,
-      //   action : ""
-      // })
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "create new area"
+      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -165,6 +163,12 @@ module.exports = {
         dtmUpdatedAt: new Date(),
       });
 
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "update area " + params.id
+      })
+
+
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -197,6 +201,11 @@ module.exports = {
         txtDeletedBy: user.id,
         dtmDeletedAt: new Date(),
       });
+
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "delete area " + params.id
+      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);

@@ -106,8 +106,13 @@ module.exports = {
         intAge: body.age,
         intRoleID: body.role,
         intLabID: body.lab,
-        // txtCreatedBy: user.id,
+        txtCreatedBy: user.id,
       }).fetch();
+
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "create new user"
+      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -147,9 +152,14 @@ module.exports = {
         intAge: body.age,
         intRoleID: body.role,
         intLabID: body.lab,
-        // txtUpdatedBy: user.id,
+        txtUpdatedBy: user.id,
         updatedAt: new Date(),
       });
+
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "update user " + params.id
+      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -184,6 +194,11 @@ module.exports = {
         dtmDeletedAt: new Date(),
       });
 
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "delete user " + params.id
+      })
+
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -216,6 +231,7 @@ module.exports = {
           username: user.txtUsername,
         };
 
+        
         bcrypt.compare(body.password, user.txtPassword, (err, valid) => {
           console.log(valid);
           if (valid) {
@@ -225,6 +241,12 @@ module.exports = {
               jwtData
             );
 
+            M_User_History.create({
+              intUserID : user.id,
+              txtAction : user.name + "login"
+            })
+
+            
             sails.helpers.successResponse(userData, "success").then((resp) => {
               res.ok(resp);
             });

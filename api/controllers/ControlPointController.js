@@ -21,11 +21,6 @@ module.exports = {
 
       const count = await M_Control_points.count(query);
       if (count > 0) {
-        // controlPoints = await M_Control_points.find(query)
-        //   .skip(pagination.page * pagination.limit)
-        //   .limit(pagination.limit)
-        //   .sort(sort);
-
         const queries = await sails.sendNativeQuery(
           `
         SELECT m_control_points.intControlPointID as id,m_control_points.txtName as txtName, 
@@ -144,14 +139,26 @@ module.exports = {
     const { user } = req;
     let { body } = req;
     try {
-      console.log(user)
-      const data = await M_Control_points.create({
-        txtName: body.name,
-        intAreaID: body.area_id,
-        // txtCreatedBy: user.id,
-      }).fetch();
+      const areas = body.area_id.map(x => {
+        return {
+          txtName : body.name,
+          intAreaID : x,
+          txtCreatedBy: user.id
+        }
+      })
 
-      sails.helpers.successResponse(data, "success").then((resp) => {
+      const data = await M_Control_points.createEach(areas).fetch();
+
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "create new control point"
+      })
+
+      const result = {
+        data: data,
+      };
+
+      sails.helpers.successResponse(result, "success").then((resp) => {
         res.ok(resp);
       });
     } catch (err) {
@@ -183,9 +190,14 @@ module.exports = {
       }).set({
         txtName: body.name,
         intAreaID: body.area_id,
-        // txtUpdatedBy: user.id,
+        txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });
+
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "update control point "+params.id
+      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -219,6 +231,11 @@ module.exports = {
         txtDeletedBy: user.id,
         dtmDeletedAt: new Date(),
       });
+
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "delete control point "+params.id
+      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);

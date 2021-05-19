@@ -116,7 +116,10 @@ module.exports = {
         txtCreatedBy: user.id,
       }).fetch();
       
- 
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "create new lab"
+      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -153,6 +156,11 @@ module.exports = {
         dtmUpdatedAt: new Date(),
       });
 
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "update lab "+params.id
+      })
+
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -185,6 +193,11 @@ module.exports = {
         txtDeletedBy: user.id,
         dtmDeletedAt: new Date(),
       });
+
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "delete lab "+params.id
+      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);

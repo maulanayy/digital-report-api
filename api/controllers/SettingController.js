@@ -109,7 +109,13 @@ module.exports = {
       const data = await M_Ewon_subscriber_setting.create({
         txtTopic: body.topic,
         txtTypeTopic: body.type_topic,
+        txtCreatedBy : user.id
       }).fetch();
+
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "create new ewon"
+      })      
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
