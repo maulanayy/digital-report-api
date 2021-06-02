@@ -151,25 +151,6 @@ module.exports = {
         intControlPointID: body.cp_id,
       }).fetch();
 
-      if (body.tipe == "formula") {
-        let formulas = [];
-
-        for (let x = 0; x < body.formula.length; x++) {
-          const element = body.formula[x];
-          console.log(element)
-          const operator = element.operator == "" ? " " : element.operator
-          formulas.push({
-              intParameterID : data.id,
-              intParameterFormulaID : element.parameter,
-              txtOperator : operator
-          })
-        }
-
-        const dataFormula = await M_Formula.createEach(formulas).fetch()
-
-        console.log(dataFormula)
-      }
-
       await M_User_History.create({
         intUserID : user.id,
         txtAction : user.name + "create new parameter"
@@ -219,29 +200,6 @@ module.exports = {
         dtmUpdatedAt: new Date(),
       });
 
-      if (body.tipe == "formula") {
-        let formulas = [];
-
-        await M_Formula.destroy({
-          intParameterID : id
-        })
-        
-        for (let x = 0; x < body.formula.length; x++) {
-          const element = body.formula[x];
-          console.log(element)
-          const operator = element.operator == "" ? " " : element.operator
-          formulas.push({
-              intParameterID : params.id,
-              intParameterFormulaID : element.parameter,
-              txtOperator : operator
-          })
-        }
-
-        const dataFormula = await M_Formula.createEach(formulas).fetch()
-
-        console.log(dataFormula)
-      }
-
       await M_User_History.create({
         intUserID : user.id,
         txtAction : user.name + "update parameter "+params.id
@@ -281,15 +239,6 @@ module.exports = {
             dtmDeletedAt: new Date(),
           });
           
-          if(params.txtTipe == "formula"){
-            await M_Formula.update({
-                intParameterID: params.id,
-              }).set({
-                txtDeletedBy: user.id,
-                dtmDeletedAt: new Date(),
-              });
-          }
-
           await M_User_History.create({
             intUserID : user.id,
             txtAction : user.name + "delete lab "+params.id

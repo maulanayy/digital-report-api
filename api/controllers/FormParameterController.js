@@ -438,28 +438,6 @@ module.exports = {
         dtmUpdatedAt: new Date(),
       });
 
-      if (body.tipe == "formula") {
-        let formulas = [];
-
-        await M_Formula.destroy({
-          intParameterID: id,
-        });
-
-        for (let x = 0; x < body.formula.length; x++) {
-          const element = body.formula[x];
-          console.log(element);
-          const operator = element.operator == "" ? " " : element.operator;
-          formulas.push({
-            intParameterID: params.id,
-            intParameterFormulaID: element.parameter,
-            txtOperator: operator,
-          });
-        }
-
-        const dataFormula = await M_Formula.createEach(formulas).fetch();
-
-        console.log(dataFormula);
-      }
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);

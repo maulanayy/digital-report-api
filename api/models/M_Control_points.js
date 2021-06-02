@@ -16,9 +16,5 @@ module.exports = {
       type: "string",
       columnName: "txtName",
     },
-    intAreaID : {
-      type : "number",
-      columnName : "intAreaID"
-    }
   },
 };
