@@ -4,8 +4,9 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
+const axios = require('axios');
 
-
+const url = "http://localhost:3000"
 module.exports = {
   getParameter: async (req, res) => {
     const { page, limit } = req.query;
@@ -52,6 +53,69 @@ module.exports = {
         res.ok(resp);
       });
     } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getOKP : async (req,res) => {
+    try{
+      const urlOKP = url + "/api/okp"
+      const dataOKP = await axios.get(urlOKP)
+      
+      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getDetailOKP : async (req,res) => {
+    const { id } = req.params;
+    try{
+      const urlOKP = url + "/api/okp/"+id+"/detail"
+      const dataOKP = await axios.get(urlOKP)
+      
+      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getParameterOKP : async (req,res) => {
+    const { id } = req.params;
+    try{
+      const urlOKP = url + "/api/okp/"+id+"/parameter"
+      console.log(urlOKP)
+      const dataOKP = await axios.get(urlOKP)
+      
+      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getResult : async (req,res) => {
+    try{
+      const urlOKP = url + "/api/okp/result"
+      const dataOKP = await axios.get(urlOKP)
+      
+      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch (err) {
       console.log("ERROR : ", err);
       sails.helpers.errorResponse(err.message, "failed").then((resp) => {
         res.status(400).send(resp);

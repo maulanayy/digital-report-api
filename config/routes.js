@@ -72,6 +72,8 @@ module.exports.routes = {
   //Paramater
 
   "get /parameter": "ParameterController.getParameter",
+  "get /parameter/okp" : "ParameterController.getOKP",
+  "get /parameter/:id/okp-parameter" : "ParameterController.getParameterOKP",
   "get /parameter/:id": "ParameterController.getOneParameter",
   "get /parameter/:cp_id/control-point": "ParameterController.getParameterByCP",
   "post /parameter": "ParameterController.createParameter",
@@ -118,6 +120,11 @@ module.exports.routes = {
   "post /shift": "ShiftController.create",
   "put /shift/:id": "ShiftController.update",
   "delete /shift/:id": "ShiftController.delete",
+
+  //Dashboard
+
+  "get /dashboard" : "DashboardController.getAll",
+  "get /dashboard/group" : "DashboardController.getGroup"
   /***************************************************************************
    *                                                                          *
    * More custom routes here...                                               *
