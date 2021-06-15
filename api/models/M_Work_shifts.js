@@ -11,7 +11,6 @@ module.exports = {
     id: {
       type: "number",
       columnName: "intWorkID",
-      required: true,
       autoIncrement: true,
     },
     txtName: {
@@ -20,13 +19,13 @@ module.exports = {
     },
     dtmTimeStart: {
       type: "ref",
-      columnType: "date",
+      columnType: "time",
       defaultsTo: null,
       columnName: "dtmTimeStart",
     },
     dtmTimeEnd: {
       type: "ref",
-      columnType: "date",
+      columnType: "time",
       defaultsTo: null,
       columnName: "dtmTimeEnd",
     }
