@@ -227,6 +227,12 @@ module.exports = {
         total: count,
       };
 
+      oracleData.map(oracle => {
+        oracle.txtIP = oracle.txtIP.replace(/[0-9]/g,"*")
+        oracle.txtPassword = oracle.txtPassword.replace(/[A-Za-z]/g,"*")
+        return oracle
+      })
+
       const data = {
         data: oracleData,
         meta: meta,

@@ -22,6 +22,11 @@ module.exports = {
       required: true,
       columnName: "txtNoDok",
     },
+    txtLotNumber: {
+      type: "string",
+      required: true,
+      columnName: "txtLotNumber",
+    },
     txtProductName: {
       type: "string",
       required: true,
@@ -31,7 +36,6 @@ module.exports = {
       type: "string",
       columnName: "txtOKP",
     },
-    
     txtRemark : {
       type : "string",
       columnName : "txtRemark"

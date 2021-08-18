@@ -14,12 +14,20 @@ module.exports = {
       autoIncrement: true,
     },
     intParameterID: {
-      type : "number",
+      type : "string",
       columnName : "intParameterID"
     },
     txtParameterName: {
       type: "string",
       columnName: "txtParameterName",
+    },
+    intMinValue : {
+      type : "number",
+      columnName : "intMinValue"
+    },
+    intMaxValue : {
+      type : "number",
+      columnName : "intMaxValue"
     },
     intFormID : {
       type : "number",

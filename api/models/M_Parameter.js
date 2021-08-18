@@ -17,6 +17,11 @@ module.exports = {
       unique: true,
       columnName: "txtName",
     },
+    txtTestCode: {
+      type: "string",
+      unique: true,
+      columnName: "txtTestCode",
+    },
     txtTipe: {
       type: "string",
       columnName: "txtTipe",
@@ -26,33 +31,9 @@ module.exports = {
       enum: ["number", "text"],
       columnName: "txtTipeData",
     },
-    // txtOracleParameter : {
-    //   type : "string",
-    //   columnName : "txtOracleParameter"
-    // },
-    // txtStandardText : {
-    //   type: "string",
-    //   columnName: "txtStandardText",
-    // },
-    // IntStandarMin : {
-    //   type: "number",
-    //   columnName: "IntStandarMin",
-    // },
-    // IntStandarMax : {
-    //   type: "number",
-    //   columnName: "IntStandarMax",
-    // },
     intEwonSubsSettingID: {
       type: "number",
       columnName: "intEwonSubsSettingID",
     },
-    intControlPointID : {
-      type : "number",
-      columnName : "intControlPointID"
-    },
-    // txtFile : {
-    //   type : "string",
-    //   columnName : "txtFile", 
-    // }
   },
 };

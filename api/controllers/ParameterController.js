@@ -25,8 +25,8 @@ module.exports = {
         const queries = await sails.sendNativeQuery(
           `
               SELECT m_parameter.intParameterID AS id,m_parameter.txtName AS txtName,m_parameter.txtTipe AS txtTipe
-              ,IF (m_parameter.txtTipe = 'mesin',(SELECT txtTopic FROM m_ewon_subscriber_setting WHERE intEwonSubsSettingID = m_parameter.intEwonSubsSettingID),'-') AS txtTopic,m_control_points.txtName AS ControlPointTxtName,
-              m_parameter.dtmCreatedAt FROM m_parameter,m_control_points WHERE m_parameter.intControlPointID = m_control_points.intControlPointID AND m_parameter.dtmDeletedAt IS NULL ORDER BY m_parameter.dtmCreatedAt DESC LIMIT $2 OFFSET $1
+              ,IF (m_parameter.txtTipe = 'mesin',(SELECT txtTopic FROM m_ewon_subscriber_setting WHERE intEwonSubsSettingID = m_parameter.intEwonSubsSettingID),'-') AS txtTopic,
+              m_parameter.dtmCreatedAt FROM m_parameter WHERE m_parameter.dtmDeletedAt IS NULL ORDER BY m_parameter.dtmCreatedAt DESC LIMIT $2 OFFSET $1
                 `,
           [pagination.page * pagination.limit, pagination.limit]
         );
@@ -59,6 +59,21 @@ module.exports = {
       });
     }
   },
+  getParameterOracle : async (req,res) => {
+    try{
+      const urlOracle = url + "/api/parameter"
+      const dataOKP = await axios.get(urlOracle)
+      
+      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   getOKP : async (req,res) => {
     try{
       const urlOKP = url + "/api/okp"
@@ -74,10 +89,26 @@ module.exports = {
       });
     }
   },
-  getDetailOKP : async (req,res) => {
+  getDetailLOT : async (req,res) => {
     const { id } = req.params;
     try{
-      const urlOKP = url + "/api/okp/"+id+"/detail"
+      const urlOKP = url + "/api/okp/"+id+"/detail-lot-number"
+      const dataOKP = await axios.get(urlOKP)
+      console.log(dataOKP.data)
+      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getLOTOKP : async (req,res) => {
+    const { id } = req.params;
+    try{
+      const urlOKP = url + "/api/okp/"+id+"/lot-number"
       const dataOKP = await axios.get(urlOKP)
       
       sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
@@ -94,8 +125,32 @@ module.exports = {
     const { id } = req.params;
     try{
       const urlOKP = url + "/api/okp/"+id+"/parameter"
-      console.log(urlOKP)
       const dataOKP = await axios.get(urlOKP)
+      let data = dataOKP.data
+
+      data.data.map(dt => {
+        
+        dt.MIN_VALUE = dt.MIN_VALUE != null && dt.MIN_VALUE != 0 ? dt.MIN_VALUE.toFixed(4) : dt.MIN_VALUE
+        dt.MAX_VALUE = dt.MAX_VALUE != null && dt.MAX_VALUE != 0 ? dt.MAX_VALUE.toFixed(4) : dt.MAX_VALUE
+
+        return dt
+      })
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getTestParameter : async (req,res) => {
+    const { id } = req.params;
+    try{
+      const urlOracle = url + "/api/okp/"+id+"/parameter-test"
+      const dataOKP = await axios.get(urlOracle)
       
       sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
         res.ok(resp);
@@ -124,24 +179,104 @@ module.exports = {
   },
   getOneParameter: async (req, res) => {
     const { id } = req.params;
+    const { page, limit } = req.query;
     try {
-      const data = await M_Parameter.findOne({
+      const dataParameter = await M_Parameter.findOne({
         where: {
           id: id,
           dtmDeletedAt: null,
         },
       });
 
-      if (!data) {
+      if (!dataParameter) {
         sails.helpers.errorResponse("data not found", "failed").then((resp) => {
-          res.status(401).send(resp);
+          res.status(400).send(resp);
         });
+      }
+
+      let dataEwon = [];
+      const pagination = {
+        page: parseInt(page) - 1 || 0,
+        limit: parseInt(limit) || 20,
+      };
+      const count = await M_Ewon_subscriber.count({
+        intEwonSubsSettingID : dataParameter.intEwonSubsSettingID
+      });
+      if (count > 0) {
+        const queries = await sails.sendNativeQuery(
+          `
+            SELECT m_parameter.txtName,m_ewon_subscriber_setting.txtTopic,m_ewon_subscriber.intValue,m_ewon_subscriber.dtmCreatedAt FROM m_parameter,m_ewon_subscriber,m_ewon_subscriber_setting WHERE
+            m_parameter.intParameterID = $1 AND m_ewon_subscriber.intEwonSubsSettingID = m_ewon_subscriber_setting.intEwonSubsSettingID AND m_ewon_subscriber.intEwonSubsSettingID = m_parameter.intEwonSubsSettingID
+            ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT $3 OFFSET $2
+          `,
+          [id,pagination.page * pagination.limit, pagination.limit]
+        );
+        dataEwon = queries.rows;
+      }
+
+      const numberOfPages = Math.ceil(count / pagination.limit);
+      const nextPage = parseInt(page) + 1;
+      const meta = {
+        page: parseInt(page),
+        perPage: pagination.limit,
+        previousPage: parseInt(page) > 1 ? parseInt(page) - 1 : false,
+        nextPage: numberOfPages >= nextPage ? nextPage : false,
+        pageCount: numberOfPages,
+        total: count,
+      };
+
+      const data = {
+        parameter : dataParameter,
+        data : dataEwon,
+        meta : meta
       }
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
     } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+
+  getValue : async (req,res) => {
+    try {
+      const { id } = req.params;
+      const dataParameter = await M_Parameter.findOne({
+        where: {
+          txtName: id,
+          dtmDeletedAt: null,
+        },
+        select: ["id", "intEwonSubsSettingID", "txtTipe"],
+      });
+
+      if (dataParameter) {
+
+        if (dataParameter.txtTipe == "mesin"){
+          const value = await M_Ewon_subscriber.find({
+            where : {
+              intEwonSubsSettingID : dataParameter.intEwonSubsSettingID
+            }
+          }).sort([{
+            dtmCreatedAt : 'DESC'
+          }]).limit(1)
+  
+          dataParameter['value']  = value[0].intValue
+        }
+        
+        if (dataParameter.txtTipe == "oracle") {
+          dataParameter['value']  = 2
+        }
+      }
+      
+      sails.helpers.successResponse(dataParameter, "success").then((resp) => {
+        res.ok(resp);
+      });
+      
+    }catch (err){
       console.log("ERROR : ", err);
       sails.helpers.errorResponse(err.message, "failed").then((resp) => {
         res.status(400).send(resp);
@@ -204,15 +339,12 @@ module.exports = {
     try {
 
       const data = await M_Parameter.create({
-        txtName: body.name,
+        txtName: body.oracle_id,
+        txtTestCode : body.test_oracle_id,
         txtTipe: body.tipe,
         txtTipeData: body.tipe_data,
-        // txtStandardText: body.txtStandard,
-        // IntStandarMin: body.numStandarMin,
-        // IntStandarMax: body.numStandarMax,
         intEwonSubsSettingID: body.topic_id,
         txtCreatedBy: user.id,
-        intControlPointID: body.cp_id,
       }).fetch();
 
       await M_User_History.create({
@@ -245,21 +377,18 @@ module.exports = {
         sails.helpers
           .errorResponse("parameter data not found", "failed")
           .then((resp) => {
-            res.status(401).send(resp);
+            res.status(400).send(resp);
           });
       }
 
       const data = await M_Parameter.update({
         id: params.id,
       }).set({
-        txtName: body.name,
+        txtName: body.oracle_id,
         txtTipe: body.tipe,
         txtTipeData: body.tipe_data,
-        txtStandardText: body.txtStandard,
-        IntStandarMin: body.numStandarMin,
-        IntStandarMax: body.numStandarMax,
+    
         intEwonSubsSettingID: body.topic_id,
-        intControlPointID: body.cp_id,
         txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });
@@ -293,7 +422,7 @@ module.exports = {
             sails.helpers
               .errorResponse("parameter data not found", "failed")
               .then((resp) => {
-                res.status(401).send(resp);
+                res.status(400).send(resp);
               });
           }
     

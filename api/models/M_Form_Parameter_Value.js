@@ -25,6 +25,10 @@ module.exports = {
       type: "number",
       columnName: "intFormParameterID",
     },
+    txtFormVaraibleValue: {
+      type : "string",
+      columnName: "txtFormVaraibleValue",
+    },
     txtParameterValue : {
       type : "string",
       columnName  : "txtParameterValue"

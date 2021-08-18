@@ -35,9 +35,23 @@ module.exports = {
       type : "string",
       columnName : "txtPreparedBy"
     },
+    txtApprove: {
+      type: "boolean",
+      defaultsTo: false,
+      columnName: "txtApprove",
+    },
     txtApprovedBy : {
       type : "string",
       columnName : "txtApprovedBy"
+    },
+    txtClosed: {
+      type: "boolean",
+      defaultsTo: false,
+      columnName: "txtClosed",
+    },
+    intClosedBy : {
+      type : "number",
+      columnName: "intClosedBy"
     },
     intFormID : {
       type : "number",

@@ -72,18 +72,27 @@ module.exports.routes = {
   //Paramater
 
   "get /parameter": "ParameterController.getParameter",
-  "get /parameter/okp" : "ParameterController.getOKP",
-  "get /parameter/:id/okp-parameter" : "ParameterController.getParameterOKP",
+  "get /parameter/oracle": "ParameterController.getParameterOracle",
+  "get /parameter/okp": "ParameterController.getOKP",
+  "get /parameter/:id/lot-detail": "ParameterController.getDetailLOT",
+  "get /parameter/:id/okp-lot": "ParameterController.getLOTOKP",
+  "get /parameter/:id/okp-parameter": "ParameterController.getParameterOKP",
+  "get /parameter/oracle/:id/test": "ParameterController.getTestParameter",
+  "get /parameter/:id/value": "ParameterController.getValue",
   "get /parameter/:id": "ParameterController.getOneParameter",
   "get /parameter/:cp_id/control-point": "ParameterController.getParameterByCP",
   "post /parameter": "ParameterController.createParameter",
-  "put /parameter/:id": "ParameterController.updateParameter",
+  "put /parameter/:id": "ParamFormPrinteterController.updateParameter",
   "delete /parameter/:id": "ParameterController.deleteParameter",
 
   //Form
 
   "get /form-data": "FormParameterController.getFormData",
   "get /form-data/:id": "FormParameterController.getOneFormData",
+  "post /form-data": "FormParameterController.createFormData",
+  "post /form-data/:id": "FormParameterController.updateFormData",
+  "put /form-data/:id/approve" : "FormParameterController.approveFormData",
+  "put /form-data/:id/close" : "FormParameterController.closeFormData",
   "get /form-parameter": "FormParameterController.getFormSetting",
   "get /form-parameter/code": "FormParameterController.getFormSettingCode",
   "get /form-parameter/:id": "FormParameterController.getOneFormSetting",
@@ -92,10 +101,8 @@ module.exports.routes = {
   "post /form-parameter": "FormParameterController.createFormSetting",
   "put /form-parameter/:id": "FormParameterController.updateFormSetting",
   "delete /form-parameter/:id": "FormParameterController.deleteFormSetting",
-  "post /form-data": "FormParameterController.createFormData",
-  "post /form-data/:id": "FormParameterController.updateFormData",
   "post /form/variable": "FormParameterController.createFormVariableSetting",
-
+  "get /form-data/print/:id" : "FormParameterController.FormPrint",
   //Setting
 
   "get /setting/ewon": "SettingController.getEwon",
@@ -123,8 +130,8 @@ module.exports.routes = {
 
   //Dashboard
 
-  "get /dashboard" : "DashboardController.getAll",
-  "get /dashboard/group" : "DashboardController.getGroup"
+  "get /dashboard": "DashboardController.getAll",
+  "get /dashboard/group": "DashboardController.getGroup",
   /***************************************************************************
    *                                                                          *
    * More custom routes here...                                               *
