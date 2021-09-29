@@ -13,49 +13,13 @@ module.exports = {
       columnName: "intFormInputID",
       autoIncrement: true,
     },
-    txtRevision: {
-      type: "string",
-      columnName: "txtRevision",
-    },
-    dtmDateExpired: {
-      type: "ref",
-      columnType: "date",
-      columnName: "dtmDateExpired",
-    },
-    txtProductDesc: {
-      type: "string",
-      columnName: "txtProductDesc",
-    },
-    dtmProductionDate: {
-      type: "ref",
-      columnType: "date",
-      columnName: "dtmProductionDate",
-    },
-    txtPreparedBy : {
-      type : "string",
-      columnName : "txtPreparedBy"
-    },
-    txtApprove: {
-      type: "boolean",
-      defaultsTo: false,
-      columnName: "txtApprove",
-    },
-    txtApprovedBy : {
-      type : "string",
-      columnName : "txtApprovedBy"
-    },
-    txtClosed: {
-      type: "boolean",
-      defaultsTo: false,
-      columnName: "txtClosed",
-    },
-    intClosedBy : {
-      type : "number",
-      columnName: "intClosedBy"
-    },
     intFormID : {
       type : "number",
       columnName : "intFormID"
+    },
+    intFormMasterID : {
+      type : "number",
+      columnName : "intFormMasterID"
     }
   },
 

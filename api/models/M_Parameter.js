@@ -14,12 +14,10 @@ module.exports = {
     },
     txtName: {
       type: "string",
-      unique: true,
       columnName: "txtName",
     },
     txtTestCode: {
       type: "string",
-      unique: true,
       columnName: "txtTestCode",
     },
     txtTipe: {

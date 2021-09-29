@@ -11,7 +11,7 @@ module.exports = {
     let query = {
       dtmDeletedAt: null,
     };
-    const sort = req.query.sort ? req.query.sort : "dtmCreatedAt DESC";
+    const sort = req.query.sort ? req.query.sort : "id ASC";
     try {
       let labs = [];
       const pagination = {
@@ -109,8 +109,6 @@ module.exports = {
     const { user } = req;
     let { body } = req;
     try {
-      console.log("INI USER")
-      console.log(user);
       const data = await M_Lab.create({
         txtName: body.name,
         txtCreatedBy: user.id,

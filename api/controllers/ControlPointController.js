@@ -7,10 +7,7 @@
 
 module.exports = {
   getAll: async (req, res) => {
-    const {
-      page,
-      limit
-    } = req.query;
+    const { page, limit } = req.query;
     let query = {
       dtmDeletedAt: null,
     };
@@ -28,7 +25,7 @@ module.exports = {
           `
           SELECT m_control_points.intControlPointID AS id,m_control_points.txtName AS txtName, m_area_control_points.intAreaID AS intAreaID
           ,GROUP_CONCAT(m_areas.txtName) AS txtAreaName,m_control_points.dtmCreatedAt AS dtmCreatedAt FROM m_areas,m_area_control_points,m_control_points WHERE m_control_points.dtmDeletedAt IS NULL 
-          AND m_areas.intAreaID = m_area_control_points.intAreaID AND m_control_points.intControlPointID = m_area_control_points.intControlPointID GROUP BY m_control_points.intControlPointID ORDER BY m_control_points.dtmCreatedAt DESC LIMIT 5 OFFSET 0
+          AND m_areas.intAreaID = m_area_control_points.intAreaID AND m_control_points.intControlPointID = m_area_control_points.intControlPointID GROUP BY m_control_points.intControlPointID ORDER BY m_control_points.intControlPointID ASC LIMIT $2 OFFSET $1
            `,
           [pagination.page * pagination.limit, pagination.limit]
         );
@@ -86,11 +83,8 @@ module.exports = {
     }
   },
   getOne: async (req, res) => {
-    const {
-      id
-    } = req.params;
+    const { id } = req.params;
     try {
-
       const queries = await sails.sendNativeQuery(
         `
         SELECT m_control_points.intControlPointID AS id,m_control_points.txtName AS txtName, m_area_control_points.intAreaID AS intAreaID
@@ -100,13 +94,12 @@ module.exports = {
         `,
         [id]
       );
-      const data = queries.rows[0];
 
-      if (!data) {
-        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
-          res.status(401).send(resp);
-        });
-      }
+      const areas = queries.rows;
+
+      const data = {
+        data: areas,
+      };
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -142,34 +135,28 @@ module.exports = {
     }
   },
   create: async (req, res) => {
-    const {
-      user
-    } = req;
-    let {
-      body
-    } = req;
+    const { user } = req;
+    let { body } = req;
     try {
-
       const controlPoint = await M_Control_points.create({
         txtName: body.name,
-        txtCreatedBy: user.id
+        txtCreatedBy: user.id,
       }).fetch();
 
-      const areas = body.area_id.map(x => {
+      const areas = body.area_id.map((x) => {
         return {
           intControlPointID: controlPoint.id,
           intAreaID: x,
-          txtCreatedBy: user.id
-        }
-      })
+          txtCreatedBy: user.id,
+        };
+      });
 
       const data = await M_Area_Control_points.createEach(areas).fetch();
 
       await M_User_History.create({
         intUserID: user.id,
-        txtAction: user.name + "create new control point"
-      })
-
+        txtAction: user.name + "create new control point",
+      });
 
       sails.helpers.successResponse(controlPoint, "success").then((resp) => {
         res.ok(resp);
@@ -182,13 +169,8 @@ module.exports = {
     }
   },
   update: async (req, res) => {
-    const {
-      user,
-      params
-    } = req;
-    let {
-      body
-    } = req;
+    const { user, params } = req;
+    let { body } = req;
     try {
       const controlPoint = await M_Control_points.findOne({
         where: {
@@ -212,27 +194,29 @@ module.exports = {
       });
 
       await M_Area_Control_points.destroy({
-        intControlPointID: params.id
-      })
+        intControlPointID: params.id,
+      });
 
-      const areas = body.area_id.map(x => {
+      const areas = body.area_id.map((x) => {
         return {
           intControlPointID: params.id,
           intAreaID: x,
-          txtCreatedBy: user.id
-        }
-      })
+          txtCreatedBy: user.id,
+        };
+      });
 
       const data = await M_Area_Control_points.createEach(areas).fetch();
 
       await M_User_History.create({
         intUserID: user.id,
-        txtAction: user.name + "update control point " + params.id
-      })
-
-      sails.helpers.successResponse(updateControlPoint, "success").then((resp) => {
-        res.ok(resp);
+        txtAction: user.name + "update control point " + params.id,
       });
+
+      sails.helpers
+        .successResponse(updateControlPoint, "success")
+        .then((resp) => {
+          res.ok(resp);
+        });
     } catch (err) {
       console.log("ERROR : ", err);
       sails.helpers.errorResponse(err.message, "failed").then((resp) => {
@@ -241,10 +225,7 @@ module.exports = {
     }
   },
   delete: async (req, res) => {
-    const {
-      user,
-      params
-    } = req;
+    const { user, params } = req;
     try {
       const controlPoint = await M_Control_points.findOne({
         where: {
@@ -267,16 +248,16 @@ module.exports = {
       });
 
       await M_Area_Control_points.update({
-        intControlPointID: params.id
+        intControlPointID: params.id,
       }).set({
         txtDeletedBy: user.id,
         dtmDeletedAt: new Date(),
-      })
+      });
 
       await M_User_History.create({
         intUserID: user.id,
-        txtAction: user.name + "delete control point " + params.id
-      })
+        txtAction: user.name + "delete control point " + params.id,
+      });
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);

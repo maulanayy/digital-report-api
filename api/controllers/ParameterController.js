@@ -7,6 +7,8 @@
 const axios = require('axios');
 
 const url = "http://localhost:3000"
+
+
 module.exports = {
   getParameter: async (req, res) => {
     const { page, limit } = req.query;
@@ -26,7 +28,7 @@ module.exports = {
           `
               SELECT m_parameter.intParameterID AS id,m_parameter.txtName AS txtName,m_parameter.txtTipe AS txtTipe
               ,IF (m_parameter.txtTipe = 'mesin',(SELECT txtTopic FROM m_ewon_subscriber_setting WHERE intEwonSubsSettingID = m_parameter.intEwonSubsSettingID),'-') AS txtTopic,
-              m_parameter.dtmCreatedAt FROM m_parameter WHERE m_parameter.dtmDeletedAt IS NULL ORDER BY m_parameter.dtmCreatedAt DESC LIMIT $2 OFFSET $1
+              m_parameter.dtmCreatedAt FROM m_parameter WHERE m_parameter.dtmDeletedAt IS NULL ORDER BY m_parameter.intParameterID ASC LIMIT $2 OFFSET $1
                 `,
           [pagination.page * pagination.limit, pagination.limit]
         );
@@ -61,10 +63,39 @@ module.exports = {
   },
   getParameterOracle : async (req,res) => {
     try{
-      const urlOracle = url + "/api/parameter"
+      const urlOracle = url + "/api/parameter-code"
       const dataOKP = await axios.get(urlOracle)
+      let data = dataOKP.data
+
+      data.data.map(dt => {
+        
+        dt.MIN_VALUE = dt.MIN_VALUE != null && dt.MIN_VALUE != 0 ? dt.MIN_VALUE.toFixed(4) : dt.MIN_VALUE
+        dt.MAX_VALUE = dt.MAX_VALUE != null && dt.MAX_VALUE != 0 ? dt.MAX_VALUE.toFixed(4) : dt.MAX_VALUE
+
+        return dt
+      })
+
+      let customParameter = await M_Form_Parameter.find({
+        where : {
+          txtParameterType : 'custom'
+        },
+        select : ['id','intParameterID','intMinValue','intMaxValue'],
+      })
       
-      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+      
+      customParameter = customParameter.map(x => {
+
+        return {
+          TEST_CODE: x.intParameterID,
+          MIN_VALUE: x.intMinValue,
+          MAX_VALUE: x.intMaxValue
+        }
+      })
+
+      const newData = data.data.concat(customParameter)
+
+      data.data = newData
+      sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
     }catch (err) {
@@ -75,11 +106,57 @@ module.exports = {
     }
   },
   getOKP : async (req,res) => {
+    const { user } = req;
+    let batchTypes = []
     try{
+      if (user.username != 'superadmin'){
+        const queriesBatc = await sails.sendNativeQuery(
+          `
+          SELECT m_batch_type.intBatchTypeID AS id, m_batch_type.txtName AS txtName FROM m_batch_type, m_batch_type_control_point, m_control_points 
+  WHERE m_batch_type.intBatchTypeID = m_batch_type_control_point.intBatchTypeID AND m_batch_type_control_point.intControlPointID = m_control_points.intControlPointID 
+  AND m_batch_type.dtmDeletedAt IS NULL AND m_batch_type_control_point.intControlPointID IN ($1) GROUP BY id
+            `,
+          [user.cp.toString()]
+        );
+        
+        batchTypes = queriesBatc.rows
+      }else{
+        batchTypes = await M_Batch_Type.find({
+          where : {dtmDeletedAt : null},
+          select : ['id','txtName']
+        })
+      }
+
+      batchTypes = batchTypes.map(x => x.txtName)
+
+      const query = {
+        "batch_types" : batchTypes
+      }
+      console.log(query)
       const urlOKP = url + "/api/okp"
-      const dataOKP = await axios.get(urlOKP)
-      
-      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+      const dataOKP = await axios.get(urlOKP,{params : query})
+
+     
+      // let batchs = dataOKP.data.data.map(x => {
+      //   return x.BATCH_NUMBER
+      // })
+
+      // for (const iterator of listOKP) {
+      //   const cp = iterator['control-point']
+      //   const intersection = cp.filter(item1 => CPUser.some(item2 => item1 === item2.txtName.toLowerCase()))
+      //   console.log("ITERATOR OKP : ",iterator.okp)
+      //   if (intersection.length > 0){
+      //     const found = batchs.find(x => {
+            
+      //       return x == iterator.okp
+      //     })
+      //     console.log(found)
+      //   }
+      // }
+      const result = {
+        data : dataOKP.data.data
+      }
+      sails.helpers.successResponse(result, "success").then((resp) => {
         res.ok(resp);
       });
     }catch (err) {
@@ -89,12 +166,11 @@ module.exports = {
       });
     }
   },
-  getDetailLOT : async (req,res) => {
+  getDetailOKP : async (req,res) => {
     const { id } = req.params;
     try{
-      const urlOKP = url + "/api/okp/"+id+"/detail-lot-number"
+      const urlOKP = url + "/api/okp/"+id+"/detail-okp"
       const dataOKP = await axios.get(urlOKP)
-      console.log(dataOKP.data)
       sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -122,10 +198,10 @@ module.exports = {
     }
   },
   getParameterOKP : async (req,res) => {
-    const { id } = req.params;
+    const { search } = req.query
     try{
-      const urlOKP = url + "/api/okp/"+id+"/parameter"
-      const dataOKP = await axios.get(urlOKP)
+      const urlOKP = url + "/api/parameter"
+      const dataOKP = await axios.get(urlOKP,{params : req.query})
       let data = dataOKP.data
 
       data.data.map(dt => {
@@ -241,7 +317,27 @@ module.exports = {
       });
     }
   },
+  getOneParameterForm : async (req,res) => {
+    const { id } = req.params;
+    try{
 
+      const data = await M_Form_Parameter.findOne({
+        where: {
+          intParameterID: id,
+        },
+        select: ["id", "intParameterID","txtParameterName","txtParameterType"],
+      });
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch(err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   getValue : async (req,res) => {
     try {
       const { id } = req.params;
@@ -338,11 +434,11 @@ module.exports = {
     let { body } = req;
     try {
 
+      console.log(body)
       const data = await M_Parameter.create({
         txtName: body.oracle_id,
         txtTestCode : body.test_oracle_id,
         txtTipe: body.tipe,
-        txtTipeData: body.tipe_data,
         intEwonSubsSettingID: body.topic_id,
         txtCreatedBy: user.id,
       }).fetch();
@@ -386,8 +482,7 @@ module.exports = {
       }).set({
         txtName: body.oracle_id,
         txtTipe: body.tipe,
-        txtTipeData: body.tipe_data,
-    
+        txtTestCode : body.test_oracle_id,
         intEwonSubsSettingID: body.topic_id,
         txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),

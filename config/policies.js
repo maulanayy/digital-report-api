@@ -8,6 +8,8 @@
  * https://sailsjs.com/docs/concepts/policies
  */
 
+const { resetPassword } = require("../api/controllers/UserController")
+
 module.exports.policies = {
 
   /***************************************************************************
@@ -20,6 +22,7 @@ module.exports.policies = {
   '*': true,
   UserController : {
     login : true,
+    "resetPassword" : true,
     "*" : "isAuthenticated"
   },
   LabController : {
@@ -32,6 +35,7 @@ module.exports.policies = {
     "*" : "isAuthenticated"
   },
   FormParameterController : {
+    FormPrint : true,
     "*" : "isAuthenticated"
   },
   ParameterController : {
@@ -41,6 +45,9 @@ module.exports.policies = {
     "*" : "isAuthenticated"
   },
   ShiftController : {
+    "*" : "isAuthenticated"
+  },
+  MasterFormController : {
     "*" : "isAuthenticated"
   }
 

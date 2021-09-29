@@ -74,12 +74,17 @@ module.exports = {
     // Hash password
 
     const password = valuesToSet.txtPassword ? valuesToSet.txtPassword : "";
-    sails.helpers.hashPassword(password).exec((err, hashedPassword) => {
-      if (err) {
-        return proceed(err);
-      }
-      valuesToSet.txtPassword = hashedPassword;
+
+    if (password != "") {
+      sails.helpers.hashPassword(password).exec((err, hashedPassword) => {
+        if (err) {
+          return proceed(err);
+        }
+        valuesToSet.txtPassword = hashedPassword;
+        return proceed();
+      });
+    }else{
       return proceed();
-    });
+    }
   },
 };

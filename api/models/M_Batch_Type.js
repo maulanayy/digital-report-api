@@ -1,24 +1,22 @@
 /**
- * M_Form_Variable.js
+ * M_Batch_Type.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
 module.exports = {
+
   attributes: {
     id: {
       type: "number",
-      columnName: "intFormVariableID",
+      columnName: "intBatchTypeID",
       autoIncrement: true,
     },
-    txtVariableName: {
+    txtName: {
       type: "string",
-      columnName: "txtVariableName",
+      columnName: "txtName",
     },
-    intFormParameterID: {
-      type: "number",
-      columnName: "intFormParameterID",
-    },
-  },
+  }
 };
+

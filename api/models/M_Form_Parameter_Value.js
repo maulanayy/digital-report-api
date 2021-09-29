@@ -13,17 +13,13 @@ module.exports = {
       columnName: "intFormValueParameterID",
       autoIncrement: true,
     },
-    txtParameterName: {
-      type: "string",
-      columnName: "txtParameterName",
-    },
     intFormInputID : {
       type: "number",
       columnName: "intFormInputID",
     },
-    intFormParameterID: {
-      type: "number",
-      columnName: "intFormParameterID",
+    txtParameterName: {
+      type: "string",
+      columnName: "txtParameterName",
     },
     txtFormVaraibleValue: {
       type : "string",

@@ -4,21 +4,47 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-const axios = require('axios');
+const axios = require("axios");
 
-const url = "http://localhost:3000"
+const url = "http://localhost:3000";
 module.exports = {
-
   getAll: async (req, res) => {
+    const { page, limit } = req.query;
     try {
       const now = new Date();
-      const month = now.getMonth()+1;
-      const startDate = now.getFullYear() + "-" + month + "-01";
-      const endDate = now.getFullYear() + "-" + month + "-30";
-      const urlOKP = url + "/api/okp/result?start_date="+startDate+"&end_date="+endDate
-      const dataOKP = await axios.get(urlOKP)
+      const startDate =
+        now.getFullYear() +
+        "-" +
+        (now.getMonth() + 1) +
+        "-" +
+        (now.getDate() - 7);
+      const endDate =
+        now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+      const urlOKP = url + "/api/okp/result";
+      const query = {
+        start_date: startDate,
+        end_date: endDate,
+        offset: page,
+        limit: limit,
+      };
+      let dataOKP = await axios.get(urlOKP, { params: query });
 
-      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+      const numberOfPages = Math.ceil(dataOKP.data.meta.TOTAL / limit);
+      const nextPage = parseInt(page) + 1;
+      const meta = {
+        page: parseInt(page),
+        perPage: limit,
+        previousPage: parseInt(page) > 1 ? parseInt(page) - 1 : false,
+        nextPage: numberOfPages >= nextPage ? nextPage : false,
+        pageCount: numberOfPages,
+        total: dataOKP.data.meta.TOTAL,
+      };
+
+      const data = {
+        data: dataOKP.data.data,
+        meta: meta,
+      };
+      sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
     } catch (err) {
@@ -31,13 +57,21 @@ module.exports = {
   getGroup: async (req, res) => {
     try {
       const now = new Date();
-      const month = now.getMonth()+1;
-      const startDate = now.getFullYear() + "-" + month + "-01";
-      const endDate = now.getFullYear() + "-" + month + "-30";
-     
-      const urlOKP = url + "/api/okp/count-result?start_date="+startDate+"&end_date="+endDate
-      const dataOKP = await axios.get(urlOKP)
-
+      const startDate =
+        now.getFullYear() +
+        "-" +
+        (now.getMonth() + 1) +
+        "-" +
+        (now.getDate() - 7);
+      const endDate =
+        now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+      const query = {
+        start_date: startDate,
+        end_date: endDate,
+      };
+      const dataOKP = await axios.get("/api/okp/count-result", {
+        params: query,
+      });
       sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -47,5 +81,5 @@ module.exports = {
         res.status(400).send(resp);
       });
     }
-  }
+  },
 };

@@ -17,7 +17,7 @@ module.exports = {
     let query = {
       dtmDeletedAt: null,
     };
-    const sort = req.query.sort ? req.query.sort : "dtmCreatedAt DESC";
+    const sort = req.query.sort ? req.query.sort : "intUserID ASC";
     try {
       let users = [];
       const pagination = {
@@ -68,19 +68,29 @@ module.exports = {
   getOne: async (req, res) => {
     const { id } = req.params;
     try {
-      const data = await M_Users.findOne({
+      let data = await M_Users.findOne({
         where: {
           id: id,
           dtmDeletedAt: null,
         },
       });
 
+      const cpQuery = await sails.sendNativeQuery(
+        `
+        SELECT m_control_points.intControlPointID AS id , m_control_points.txtName AS txtName FROM m_control_points,m_users,m_user_control_points WHERE
+m_users.intUserID = m_user_control_points.intUserID AND m_user_control_points.intControlPointID = m_control_points.intControlPointID AND m_users.intUserID = $1 
+            `,
+        id
+      );
+
+      const cpData =cpQuery.rows;
       if (!data) {
         sails.helpers.errorResponse("data not found", "failed").then((resp) => {
           res.status(401).send(resp);
         });
       }
 
+      data.cp = cpData
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -110,9 +120,19 @@ module.exports = {
       }).fetch();
 
       await M_User_History.create({
-        intUserID : user.id,
-        txtAction : user.name + "create new user"
-      })
+        intUserID: user.id,
+        txtAction: user.name + "create new user",
+      });
+      console.log(body.cp_id);
+      const areas = body.cp_id.map((x) => {
+        return {
+          intControlPointID: x,
+          intUserID: data.id,
+          txtCreatedBy: user.id,
+        };
+      });
+
+      await M_User_Control_points.createEach(areas).fetch();
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -157,9 +177,9 @@ module.exports = {
       });
 
       await M_User_History.create({
-        intUserID : user.id,
-        txtAction : user.name + "update user " + params.id
-      })
+        intUserID: user.id,
+        txtAction: user.name + "update user " + params.id,
+      });
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -195,9 +215,9 @@ module.exports = {
       });
 
       await M_User_History.create({
-        intUserID : user.id,
-        txtAction : user.name + "delete user " + params.id
-      })
+        intUserID: user.id,
+        txtAction: user.name + "delete user " + params.id,
+      });
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -212,52 +232,121 @@ module.exports = {
   login: async (req, res) => {
     const { body } = req;
     try {
-      console.log(body);
       let user = await M_Users.findOne({
         where: { txtUsername: body.username },
-        select: ["id", "txtName", "txtUsername", "txtPassword"],
+        select: [
+          "id",
+          "txtName",
+          "txtUsername",
+          "txtPassword",
+          "intLabID",
+          "dtmCreatedAt",
+          "dtmUpdatedAt",
+        ],
       });
-      console.log(user)
+      const dateNow = new Date();
+      const dateCreateUser = user.dtmCreatedAt;
+
+      var Difference_In_Time = dateNow.getTime() - dateCreateUser.getTime();
+      var Difference_In_Days = Math.floor(
+        Difference_In_Time / (1000 * 3600 * 24)
+      );
       if (!user) {
-        sails.helpers
-          .errorResponse("", "user not found")
-          .then((resp) => {
-            res.status(400).send(resp);
-          });
+        sails.helpers.errorResponse("", "user not found").then((resp) => {
+          res.status(400).send(resp);
+        });
+      } else if (Difference_In_Days >= 90) {
+        sails.helpers.errorResponse("", "user Expired").then((resp) => {
+          res.status(400).send(resp);
+        });
       } else {
+        let controlPountUser = await M_User_Control_points.find({
+          where: { intUserID: user.id },
+          select: ["intControlPointID"],
+        });
+        controlPountUser = controlPountUser.map((x) => x.intControlPointID);
         const userData = {
           id: user.id,
           name: user.txtName,
           username: user.txtUsername,
+          cp: controlPountUser,
+          lab_id : user.intLabID
         };
+        const valid = await bcrypt.compare(body.password, user.txtPassword);
+        if (valid) {
+          userData.token = jwt.sign(
+            userData,
+            sails.config.session.secret,
+            jwtData
+          );
 
-        
-        bcrypt.compare(body.password, user.txtPassword, (err, valid) => {
-          console.log(valid);
-          if (valid) {
-            userData.token = jwt.sign(
-              userData,
-              sails.config.session.secret,
-              jwtData
-            );
+          await M_User_History.create({
+            intUserID: user.id,
+            txtAction: user.name + "login",
+          });
 
-            M_User_History.create({
-              intUserID : user.id,
-              txtAction : user.name + "login"
-            })
-
-            
-            sails.helpers.successResponse(userData, "success").then((resp) => {
-              res.ok(resp);
+          sails.helpers.successResponse(userData, "success").then((resp) => {
+            res.ok(resp);
+          });
+        } else {
+          sails.helpers
+            .errorResponse("Username or Password Wrong...", "failed")
+            .then((resp) => {
+              res.status(400).send(resp);
             });
-          } else {
-            sails.helpers
-              .errorResponse("Email or Password Wrong...", "failed")
-              .then((resp) => {
-                res.status(400).send(resp);
-              });
-          }
+        }
+      }
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  resetPassword: async (req, res) => {
+    const { body } = req;
+    try {
+      console.log(body);
+      let user = await M_Users.findOne({
+        where: { txtUsername: body.username },
+        select: [
+          "id",
+          "txtName",
+          "txtUsername",
+          "txtPassword",
+          "dtmCreatedAt",
+          "dtmUpdatedAt",
+        ],
+      });
+
+      if (!user) {
+        sails.helpers.errorResponse({}, "user not found").then((resp) => {
+          res.status(400).send(resp);
         });
+      } else {
+        const match = await bcrypt.compare(body.password, user.txtPassword);
+
+        if (match) {
+          const data = await M_Users.update({
+            id: user.id,
+          }).set({
+            txtPassword: body.new_password,
+          });
+
+          await M_User_History.create({
+            intUserID: user.id,
+            txtAction: user.name + "reset password",
+          });
+          sails.helpers.successResponse({}, "success").then((resp) => {
+            res.ok(resp);
+          });
+        } else {
+          sails.helpers
+            .errorResponse("Username or Password Wrong...", "failed")
+            .then((resp) => {
+              res.status(400).send(resp);
+            });
+        }
       }
     } catch (err) {
       console.log("ERROR : ", err);

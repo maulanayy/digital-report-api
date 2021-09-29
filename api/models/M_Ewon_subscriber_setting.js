@@ -17,11 +17,6 @@ module.exports = {
       required: true,
       columnName: "txtTopic",
     },
-    txtTypeTopic: {
-      type: "string",
-      required: true,
-      columnName: "txtTypeTopic",
-    },
     txtStatus: {
       type: "boolean",
       defaultsTo: true,

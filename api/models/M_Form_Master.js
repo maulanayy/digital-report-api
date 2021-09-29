@@ -1,15 +1,16 @@
 /**
- * M_Form.js
+ * M_Form_Master.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
 module.exports = {
+
   attributes: {
     id: {
       type: "number",
-      columnName: "intFormID",
+      columnName: "intFormMasterID",
       autoIncrement: true,
     },
     txtFormName : {
@@ -17,9 +18,20 @@ module.exports = {
       required: true,
       columnName: "txtFormName",
     },
-    intControlPointID : {
+    txtNoDok: {
+      type: "string",
+      required: true,
+      columnName: "txtNoDok",
+    },
+    txtRemark : {
+      type : "string",
+      columnName : "txtRemark"
+    },
+    intLabID : {
       type: "number",
-      columnName: "intControlPointID",
+      columnName: "intLabID",
     }
   },
+
 };
+

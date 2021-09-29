@@ -25,7 +25,7 @@ module.exports = {
           `
           SELECT m_areas.intAreaID AS id,m_areas.txtName AS txtName, 
           m_lab.txtName AS labTxtName,m_areas.dtmCreatedAt AS dtmCreatedAt FROM m_areas,m_lab WHERE m_areas.dtmDeletedAt IS NULL 
-          AND m_areas.intLabID = m_lab.intLabID ORDER BY m_areas.dtmCreatedAt DESC LIMIT $1 OFFSET $2
+          AND m_areas.intLabID = m_lab.intLabID ORDER BY m_areas.intAreaID ASC LIMIT $1 OFFSET $2
             `,
           [pagination.limit,pagination.page * pagination.limit]
         );
@@ -43,7 +43,6 @@ module.exports = {
         total: count,
       };
 
-      console.log(areas)
       const data = {
         data: areas,
         meta: meta,
@@ -116,7 +115,6 @@ module.exports = {
     const { user } = req;
     let { body } = req;
     try {
-      console.log(user)
       const data = await M_Areas.create({
         txtName: body.name,
         txtCreatedBy: user.id,

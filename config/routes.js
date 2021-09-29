@@ -25,6 +25,7 @@ module.exports.routes = {
   "get /user/:id": "UserController.getOne",
   "post /login": "UserController.login",
   "post /user": "UserController.create",
+  "post /user/reset-password": "UserController.resetPassword",
   "put /user/:id": "UserController.update",
   "delete /user/:id": "UserController.delete",
 
@@ -72,29 +73,32 @@ module.exports.routes = {
   //Paramater
 
   "get /parameter": "ParameterController.getParameter",
-  "get /parameter/oracle": "ParameterController.getParameterOracle",
+  "get /parameter/oracle-code": "ParameterController.getParameterOracle",
+  "get /parameter/oracle-parameter": "ParameterController.getParameterOKP",
   "get /parameter/okp": "ParameterController.getOKP",
-  "get /parameter/:id/lot-detail": "ParameterController.getDetailLOT",
+  "get /parameter/:id/okp-detail": "ParameterController.getDetailOKP",
   "get /parameter/:id/okp-lot": "ParameterController.getLOTOKP",
-  "get /parameter/:id/okp-parameter": "ParameterController.getParameterOKP",
   "get /parameter/oracle/:id/test": "ParameterController.getTestParameter",
   "get /parameter/:id/value": "ParameterController.getValue",
-  "get /parameter/:id": "ParameterController.getOneParameter",
+  "get /parameter/:id/  ": "ParameterController.getOneParameter",
+  "get /parameter/:id/form": "ParameterController.getOneParameterForm",
   "get /parameter/:cp_id/control-point": "ParameterController.getParameterByCP",
   "post /parameter": "ParameterController.createParameter",
-  "put /parameter/:id": "ParamFormPrinteterController.updateParameter",
+  "put /parameter/:id": "ParameterController.updateParameter",
   "delete /parameter/:id": "ParameterController.deleteParameter",
 
   //Form
 
   "get /form-data": "FormParameterController.getFormData",
   "get /form-data/:id": "FormParameterController.getOneFormData",
+  "get /form-data/:id/value/:form_master_id": "FormParameterController.getFormValue",
   "post /form-data": "FormParameterController.createFormData",
-  "post /form-data/:id": "FormParameterController.updateFormData",
-  "put /form-data/:id/approve" : "FormParameterController.approveFormData",
-  "put /form-data/:id/close" : "FormParameterController.closeFormData",
+  "put /form-data/:id": "FormParameterController.updateFormData",
+  "put /form-data/:id/approve": "FormParameterController.approveFormData",
+  "put /form-data/:id/close": "FormParameterController.closeFormData",
   "get /form-parameter": "FormParameterController.getFormSetting",
-  "get /form-parameter/code": "FormParameterController.getFormSettingCode",
+  "get /form-parameter/:id/code": "FormParameterController.getFormSettingCode",
+  "get /form-parameter/code/list": "FormParameterController.getFormCode",
   "get /form-parameter/:id": "FormParameterController.getOneFormSetting",
   "get /form-parameter/:id/parameter":
     "FormParameterController.getParameterForm",
@@ -102,21 +106,35 @@ module.exports.routes = {
   "put /form-parameter/:id": "FormParameterController.updateFormSetting",
   "delete /form-parameter/:id": "FormParameterController.deleteFormSetting",
   "post /form/variable": "FormParameterController.createFormVariableSetting",
-  "get /form-data/print/:id" : "FormParameterController.FormPrint",
+  "get /form-data/print/:id": "FormParameterController.FormPrint",
+
+  // Master Form
+
+  "get /master-form": "MasterFormController.getMasterFormSetting",
+  "get /master-form/code": "MasterFormController.getMasterFormCode",
+  "get /master-form/:id": "MasterFormController.getOneMasterFormSetting",
+  "post /master-form": "MasterFormController.createMasterFormSetting",
+  "put /master-form/:id": "MasterFormController.updateMasterFormSetting",
+  "delete /master-form/:id": "MasterFormController.deleteMasterFormSetting",
   //Setting
 
   "get /setting/ewon": "SettingController.getEwon",
   "get /setting/ewon/:id": "SettingController.getOneEwon",
   "get /setting/ewon/code": "SettingController.getEwonCode",
+  "post /setting/ewon": "SettingController.createEwon",
+  "put /setting/ewon/:id": "SettingController.updateEwon",
+  "delete /setting/ewon/:id": "SettingController.deleteEwon",
   "get /setting/oracle": "SettingController.getOracle",
   "get /setting/oracle/:id": "SettingController.getOneOracle",
-  "post /setting/ewon": "SettingController.createEwon",
   "post /setting/oracle": "SettingController.createOracle",
-  "put /setting/ewon/:id": "SettingController.updateEwon",
   "put /setting/oracle/:id": "SettingController.updateOracle",
-  "delete /setting/ewon/:id": "SettingController.deleteEwon",
   "delete /setting/oracle/:id": "SettingController.deleteOracle",
-
+  "get /setting/batch-type/oracle": "SettingController.getBatchTypeOracle",
+  "get /setting/batch-type": "SettingController.getBatchType",
+  "get /setting/batch-type/:id/detail": "SettingController.getOneBatchType",
+  "post /setting/batch-type": "SettingController.createBatchType",
+  "put /setting/batch-type/:id": "SettingController.updateBatchType",
+  "delete /setting/batch-type/:id": "SettingController.deleteBatchType",
   //Permission
   "get /permission": "PermissionController.getAll",
 
