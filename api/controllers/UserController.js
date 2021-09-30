@@ -123,7 +123,7 @@ m_users.intUserID = m_user_control_points.intUserID AND m_user_control_points.in
         intUserID: user.id,
         txtAction: user.name + "create new user",
       });
-      console.log(body.cp_id);
+
       const areas = body.cp_id.map((x) => {
         return {
           intControlPointID: x,
@@ -175,6 +175,20 @@ m_users.intUserID = m_user_control_points.intUserID AND m_user_control_points.in
         txtUpdatedBy: user.id,
         updatedAt: new Date(),
       });
+
+      const areas = body.cp_id.map((x) => {
+        return {
+          intControlPointID: x,
+          intUserID: params.id,
+          txtCreatedBy: user.id,
+        };
+      });
+
+      await M_User_Control_points.destroy({
+        intUserID : params.id
+      })
+
+      await M_User_Control_points.createEach(areas).fetch();
 
       await M_User_History.create({
         intUserID: user.id,

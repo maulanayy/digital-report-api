@@ -20,8 +20,11 @@ module.exports = {
     intFormMasterID : {
       type : "number",
       columnName : "intFormMasterID"
+    },
+    txtOKP : {
+      type : "string",
+      columnName : "txtOKP"
     }
   },
-
 };
 

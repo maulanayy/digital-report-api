@@ -60,7 +60,6 @@ module.exports = {
     const { user } = req;
     let labs = [];
     try {
-      
       if (user.username == "superadmin"){
         const cp = await M_Lab.find({
           where: {
@@ -77,9 +76,7 @@ module.exports = {
       const forms = await M_Form_Master.find({
         where: {
           dtmDeletedAt: null,
-          intLabID : {
-            in : labs
-          }
+          intLabID : user.lab_id
         },
         select: ["id", "txtFormName"],
       });

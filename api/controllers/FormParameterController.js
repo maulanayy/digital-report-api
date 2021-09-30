@@ -235,20 +235,37 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
     const { user } = req;
     let { body, params } = req;
     let parameterValue = [];
+    let formID = 0;
     try {
       console.log(body);
       const paramsForm = await M_Form_Input.findOne({
         where: {
           intFormID: body.form,
           intFormMasterID: params.id,
+          txtOKP: body.okp
         },
         select: ["id"],
       });
 
+      console.log(paramsForm)
+
+      if (paramsForm){
+        formID = paramsForm.id
+      } else{
+        const form = await M_Form_Input.create({
+          intFormID: body.form,
+          intFormMasterID: params.id,
+          txtOKP: body.okp,
+        }).fetch();
+
+        formID = form.id
+
+      }
+
       for (let x = 0; x < body.parameters.length; x++) {
         const element = body.parameters[x];
         parameterValue.push({
-          intFormInputID: paramsForm.id,
+          intFormInputID: formID,
           txtParameterName: element["parameter"],
           txtFormVaraibleValue: element["lot_number"],
           txtParameterValue: element["value"],
@@ -432,6 +449,7 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
       } else {
         controlPoints = user.cp;
       }
+      console.log(controlPoints)
 
       const formList = await M_Form_Master_List.find({
         where: {
