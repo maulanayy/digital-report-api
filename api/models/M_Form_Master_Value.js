@@ -31,6 +31,10 @@ module.exports = {
       type: "string",
       columnName: "txtOKP",
     },
+    intLotNumberLength :{
+      type : "number",
+      columnName : "intLotNumberLength", 
+    },
     txtProductDesc: {
       type: "string",
       columnName: "txtProductDesc",

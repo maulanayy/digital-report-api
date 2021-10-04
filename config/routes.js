@@ -80,7 +80,7 @@ module.exports.routes = {
   "get /parameter/:id/okp-lot": "ParameterController.getLOTOKP",
   "get /parameter/oracle/:id/test": "ParameterController.getTestParameter",
   "get /parameter/:id/value": "ParameterController.getValue",
-  "get /parameter/:id/  ": "ParameterController.getOneParameter",
+  "get /parameter/:id/detail  ": "ParameterController.getOneParameter",
   "get /parameter/:id/form": "ParameterController.getOneParameterForm",
   "get /parameter/:cp_id/control-point": "ParameterController.getParameterByCP",
   "post /parameter": "ParameterController.createParameter",
@@ -135,6 +135,13 @@ module.exports.routes = {
   "post /setting/batch-type": "SettingController.createBatchType",
   "put /setting/batch-type/:id": "SettingController.updateBatchType",
   "delete /setting/batch-type/:id": "SettingController.deleteBatchType",
+  "get /setting/type-okp": "SettingController.getTypeOKP",
+  "get /setting/type-okp/:id": "SettingController.getOneTypeOKP",
+  "get /setting/type-okp/code": "SettingController.getTypeOKPCode",
+  "post /setting/type-okp": "SettingController.createTypeOKP",
+  "put /setting/type-okp/:id": "SettingController.updateTypeOKP",
+  "delete /setting/type-okp/:id": "SettingController.deleteTypeOKP",
+  
   //Permission
   "get /permission": "PermissionController.getAll",
 

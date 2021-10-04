@@ -151,7 +151,7 @@ module.exports = {
         };
       });
 
-      const data = await M_Area_Control_points.createEach(areas).fetch();
+      await M_Area_Control_points.createEach(areas).fetch();
 
       await M_User_History.create({
         intUserID: user.id,

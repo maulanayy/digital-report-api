@@ -76,7 +76,7 @@ module.exports = {
       const forms = await M_Form_Master.find({
         where: {
           dtmDeletedAt: null,
-          intLabID : user.lab_id
+          // intLabID : user.lab_id
         },
         select: ["id", "txtFormName"],
       });

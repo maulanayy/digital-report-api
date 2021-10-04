@@ -64,7 +64,6 @@ module.exports = {
         },
       });
 
-      console.log(data)
 
       if (!data) {
         sails.helpers.errorResponse("data not found", "failed").then((resp) => {

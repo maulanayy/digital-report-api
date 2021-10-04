@@ -595,4 +595,235 @@ AND m_batch_type.intBatchTypeID = $1
       });
     }
   },
+  getTypeOKP : async (req,res) => {
+    const {page, limit} = req.query
+    let query = {
+      dtmDeletedAt: null,
+    };
+    try{
+      let data = [];
+      const pagination = {
+        page: parseInt(page) - 1 || 0,
+        limit: parseInt(limit) || 20,
+      };
+ 
+      const count = await M_Type_OKP.count(query);
+      if (count > 0) {
+        const query = await sails.sendNativeQuery(
+          `
+          SELECT m_type_okp.intTypeOKP AS id, m_type_okp.txtName , GROUP_CONCAT(m_control_points.txtName) AS txtControlPoint,m_type_okp.dtmCreatedAt FROM
+m_type_okp,m_type_okp_cp,m_control_points WHERE m_type_okp.intTypeOKP = m_type_okp_cp.intTypeOKPID AND m_type_okp_cp.intControlPointID = m_control_points.intControlPointID 
+GROUP BY m_type_okp.intTypeOKP ORDER BY m_type_okp.intTypeOKP ASC LIMIT $2 OFFSET $1
+           `,
+          [pagination.page * pagination.limit, pagination.limit]
+        )
+
+        data = query.rows;
+      }
+
+
+      const numberOfPages = Math.ceil(count / pagination.limit);
+      const nextPage = parseInt(page) + 1;
+      const meta = {
+        page: parseInt(page),
+        perPage: pagination.limit,
+        previousPage: parseInt(page) > 1 ? parseInt(page) - 1 : false,
+        nextPage: numberOfPages >= nextPage ? nextPage : false,
+        pageCount: numberOfPages,
+        total: count,
+      };
+
+      const result = {
+        data: data,
+        meta: meta,
+      };
+
+      sails.helpers.successResponse(result, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch(err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getOneTypeOKP: async (req, res) => {
+    const { id } = req.params;
+    try {
+      let data = await M_Type_OKP.findOne({
+        where: {
+          id: id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!data) {
+        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      const query = await sails.sendNativeQuery(
+        `
+        SELECT m_control_points.intControlPointID,m_control_points.txtName FROM m_control_points,m_type_okp_cp WHERE 
+m_type_okp_cp.intControlPointID = m_control_points.intControlPointID AND m_type_okp_cp.intTypeOKPID = $1`,[id]
+      )
+  
+      const listOKPCP = query.rows
+
+      data['list_cp'] = listOKPCP
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getTypeOKPCode: async (req, res) => {
+    try {
+      const typeOKP = await M_Type_OKP.find({
+        where: {
+          dtmDeletedAt: null,
+        },
+        select: ["id", "txtName"],
+      });
+
+      const data = {
+        typeOKP,
+      };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  createTypeOKP: async (req, res) => {
+    const { user } = req;
+    let { body } = req;
+    try {
+      const data = await M_Type_OKP.create({
+        txtName: body.name,
+        txtCreatedBy : user.id
+      }).fetch();
+
+      const cp = body.cp_id.map((x) => {
+        return {
+          intTypeOKPID : data.id,
+          intControlPointID : x,
+          txtCreatedBy : user.id
+        }
+      })
+
+      await M_Type_OKP_CP.createEach(cp).fetch();
+      
+      await M_User_History.create({
+        intUserID: user.id,
+        txtAction: user.name + "create new type OKP",
+      });
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  updateTypeOKP: async (req, res) => {
+    const { user, params } = req;
+    let { body } = req;
+    try {
+      const typeOKP = await M_Type_OKP.findOne({
+        where: {
+          id: params.id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!typeOKP) {
+        sails.helpers.errorResponse("ewon not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      const data = await M_Type_OKP.update({
+        id: params.id,
+      }).set({
+        txtName: body.name,
+        dtmUpdatedAt: new Date(),
+        txtUpdatedBy: user.id
+      });
+
+      await M_Type_OKP_CP.destroy({
+        intTypeOKPID : params.id
+      })
+
+      const cp = body.cp_id.map((x) => {
+        return {
+          intTypeOKPID : params.id,
+          intControlPointID : x,
+          txtCreatedBy : user.id
+        }
+      })
+
+      await M_Type_OKP_CP.createEach(cp).fetch();
+
+      await M_User_History.create({
+        intUserID: user.id,
+        txtAction: user.name + "update type OKP "+ params.id,
+      });
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  deleteTypeOKP: async (req, res) => {
+    const { user, params } = req;
+    try {
+      const typeOKP = await M_Type_OKP.findOne({
+        where: {
+          id: params.id,
+          dtmDeletedAt: null,
+        },
+      });
+
+      if (!typeOKP) {
+        sails.helpers.errorResponse("ewon not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      const data = await M_Type_OKP.update({
+        id: params.id,
+      }).set({
+        dtmDeletedAt: new Date(),
+      });
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
 };

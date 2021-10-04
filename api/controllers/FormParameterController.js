@@ -192,6 +192,7 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
         txtRevision: "-",
         txtOKP: body.okp,
         txtProductName: body.product_name,
+        intLotNumberLength : body.lot_numbers_length,
         dtmDateExpired: body.expired_date,
         txtProductDesc: body.product_desc,
         dtmProductionDate: body.product_date,
