@@ -106,35 +106,35 @@ module.exports = {
     }
   },
   getOKP : async (req,res) => {
-    const { user } = req;
-    let batchTypes = []
+    const { user,query } = req;
+    let typeOKP = []
     try{
-      if (user.username != 'superadmin'){
-        const queriesBatc = await sails.sendNativeQuery(
-          `
-          SELECT m_batch_type.intBatchTypeID AS id, m_batch_type.txtName AS txtName FROM m_batch_type, m_batch_type_control_point, m_control_points 
-  WHERE m_batch_type.intBatchTypeID = m_batch_type_control_point.intBatchTypeID AND m_batch_type_control_point.intControlPointID = m_control_points.intControlPointID 
-  AND m_batch_type.dtmDeletedAt IS NULL AND m_batch_type_control_point.intControlPointID IN ($1) GROUP BY id
-            `,
-          [user.cp.toString()]
-        );
-        
-        batchTypes = queriesBatc.rows
-      }else{
-        batchTypes = await M_Batch_Type.find({
-          where : {dtmDeletedAt : null},
-          select : ['id','txtName']
-        })
-      }
 
-      batchTypes = batchTypes.map(x => x.txtName)
+      const CP = await M_Form.findOne({
+        where : {
+          id : query.form_id
+        },
+        select : ['intControlPointID']
+      })
 
-      const query = {
-        "batch_types" : batchTypes
+      const queriesBatc = await sails.sendNativeQuery(
+        `
+        SELECT m_type_okp.txtName FROM m_type_okp,m_type_okp_cp WHERE m_type_okp.intTypeOKP = m_type_okp_cp.intTypeOKPID 
+        AND m_type_okp.dtmDeletedAt IS NULL AND m_type_okp_cp.intControlPointID IN ($1)
+          `,
+        [CP.intControlPointID]
+      );
+      
+      typeOKP = queriesBatc.rows
+
+      typeOKP = typeOKP.map(x => x.txtName)
+
+      const body = {
+        "type_okp" : typeOKP
       }
-      console.log(query)
+      
       const urlOKP = url + "/api/okp"
-      const dataOKP = await axios.get(urlOKP,{params : query})
+      const dataOKP = await axios.get(urlOKP,{params : body})
 
      
       // let batchs = dataOKP.data.data.map(x => {
@@ -257,18 +257,6 @@ module.exports = {
     const { id } = req.params;
     const { page, limit } = req.query;
     try {
-      const dataParameter = await M_Parameter.findOne({
-        where: {
-          id: id,
-          dtmDeletedAt: null,
-        },
-      });
-
-      if (!dataParameter) {
-        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
-          res.status(400).send(resp);
-        });
-      }
 
       let dataEwon = [];
       const pagination = {
@@ -276,17 +264,17 @@ module.exports = {
         limit: parseInt(limit) || 20,
       };
       const count = await M_Ewon_subscriber.count({
-        intEwonSubsSettingID : dataParameter.intEwonSubsSettingID
+        intEwonSubsSettingID : id
       });
       if (count > 0) {
         const queries = await sails.sendNativeQuery(
           `
-            SELECT m_parameter.txtName,m_ewon_subscriber_setting.txtTopic,m_ewon_subscriber.intValue,m_ewon_subscriber.dtmCreatedAt FROM m_parameter,m_ewon_subscriber,m_ewon_subscriber_setting WHERE
-            m_parameter.intParameterID = $1 AND m_ewon_subscriber.intEwonSubsSettingID = m_ewon_subscriber_setting.intEwonSubsSettingID AND m_ewon_subscriber.intEwonSubsSettingID = m_parameter.intEwonSubsSettingID
-            ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT $3 OFFSET $2
+          SELECT m_ewon_subscriber_setting.txtTopic, m_ewon_subscriber.intValue, m_ewon_subscriber.dtmCreatedAt FROM
+          m_ewon_subscriber_setting,m_ewon_subscriber WHERE m_ewon_subscriber.intEwonSubsSettingID = m_ewon_subscriber_setting.intEwonSubsSettingID
+          AND m_ewon_subscriber_setting.intEwonSubsSettingID = 1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT $1 OFFSET $2
           `,
-          [id,pagination.page * pagination.limit, pagination.limit]
-        );
+          [pagination.limit,pagination.page * pagination.limit]
+        )
         dataEwon = queries.rows;
       }
 
@@ -301,10 +289,25 @@ module.exports = {
         total: count,
       };
 
+      let graph = await M_Ewon_subscriber.find({
+        where : {
+          intEwonSubsSettingID : id,
+        },
+        select : ['dtmCreatedAt','intValue']
+      }).sort("dtmCreatedAt DESC");
+
+      graph = graph.map(res => {
+        return {
+          x : res.dtmCreatedAt,
+          y : res.intValue
+        }
+      })
+
+
       const data = {
-        parameter : dataParameter,
         data : dataEwon,
-        meta : meta
+        meta : meta,
+        graph : graph
       }
 
       sails.helpers.successResponse(data, "success").then((resp) => {
@@ -434,7 +437,6 @@ module.exports = {
     let { body } = req;
     try {
 
-      console.log(body)
       const data = await M_Parameter.create({
         txtName: body.oracle_id,
         txtTestCode : body.test_oracle_id,
@@ -442,6 +444,15 @@ module.exports = {
         intEwonSubsSettingID: body.topic_id,
         txtCreatedBy: user.id,
       }).fetch();
+      if (body.tipe == "formula") {
+        await M_Formula.create({
+          txtParameterID : body.oracle_id,
+          intValueOperator : body.operator_value,
+          txtOperator : body.operator,
+          txtParameterOperator : body.operator_parameter,
+          txtCreatedBy: user.id,
+        })
+      }
 
       await M_User_History.create({
         intUserID : user.id,
@@ -536,6 +547,21 @@ module.exports = {
             res.ok(resp);
           });
     } catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
+  getParameterLotNumber : async (req,res) => {
+    const { id } = req.params;
+    try{
+      const urlOKP = url + "/api/okp/"+id+"/parameter"
+      const dataOKP = await axios.get(urlOKP)
+      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch (err) {
       console.log("ERROR : ", err);
       sails.helpers.errorResponse(err.message, "failed").then((resp) => {
         res.status(400).send(resp);

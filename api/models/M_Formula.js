@@ -13,19 +13,21 @@ module.exports = {
       columnName: "intFormulaID",
       autoIncrement: true,
     },
-    intParameterID: {
-      type: "number",
-      columnName: "intParameterID",
+    txtParameterID: {
+      type: "string",
+      columnName: "txtParameterID",
     },
-    intParameterFormulaID: {
+    intValueOperator: {
       type: "number",
-      required: true,
-      columnName: "intParameterFormulaID",
+      columnName: "intValueOperator",
     },  
     txtOperator: {
       type: "string",
-      required: true,
       columnName: "txtOperator",
+    },
+    txtParameterOperator: {
+      type: "string",
+      columnName: "txtParameterOperator",
     },  
   },
 

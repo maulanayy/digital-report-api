@@ -86,6 +86,7 @@ module.exports.routes = {
   "post /parameter": "ParameterController.createParameter",
   "put /parameter/:id": "ParameterController.updateParameter",
   "delete /parameter/:id": "ParameterController.deleteParameter",
+  "get /parameter/:id/lot-number" : "ParameterController.getParameterLotNumber",
 
   //Form
 
@@ -141,6 +142,8 @@ module.exports.routes = {
   "post /setting/type-okp": "SettingController.createTypeOKP",
   "put /setting/type-okp/:id": "SettingController.updateTypeOKP",
   "delete /setting/type-okp/:id": "SettingController.deleteTypeOKP",
+  "get /setting/password" : "SettingController.GetPassword",
+  "post /setting/password" : "SettingController.CreatePassword",
   
   //Permission
   "get /permission": "PermissionController.getAll",

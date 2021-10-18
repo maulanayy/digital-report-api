@@ -138,7 +138,6 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
         select: ["id"],
       });
 
-      console.log(formID);
       if (formID) {
         let parameters = await M_Form_Parameter_Value.find({
           where: {
@@ -248,7 +247,6 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
         select: ["id"],
       });
 
-      console.log(paramsForm)
 
       if (paramsForm){
         formID = paramsForm.id
@@ -523,6 +521,26 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
               ? "SESUAI STANDARD"
               : param.intMinValue + "-" + param.intMaxValue;
         }
+        const parameter = await M_Parameter.findOne({
+          where : {
+            txtName : param.intParameterID
+          },
+          select : ['txtTipe']
+        })
+
+
+        const paramType = parameter ? parameter.txtTipe : ""
+
+        if (paramType == "formula"){
+          const formula = await M_Formula.findOne({
+            where : {
+              txtParameterID : param.intParameterID
+            },
+            select : ['intValueOperator','txtOperator','txtParameterOperator']
+          })
+          param['formula'] = formula
+        } 
+
         const paramQuery = await sails.sendNativeQuery(
           `
           SELECT m_ewon_subscriber.intValue FROM m_ewon_subscriber,m_parameter WHERE m_ewon_subscriber.intEwonSubsSettingID = m_parameter.intEwonSubsSettingID
@@ -597,9 +615,6 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
           element.MAX_VALUE != "not defined" && element.MIN_VALUE != ""
             ? element.MAX_VALUE
             : 0;
-
-        console.log("MIN VALUE : ", minValue);
-        console.log("MAX VALUE : ", maxValue);
 
         parameters.push({
           intParameterID: element.TEST_CODE,

@@ -10,7 +10,7 @@ module.exports = {
     const { page, limit } = req.query;
     let query = {
       dtmDeletedAt: null,
-    };
+    };        
     const sort = req.query.sort ? req.query.sort : "id ASC";
     try {
       let labs = [];
@@ -56,7 +56,6 @@ module.exports = {
   getOne: async (req, res) => {
     const { id } = req.params;
     try {
-      console.log("ID : ",id)
       const data = await M_Lab.findOne({
         where: {
           id: id,

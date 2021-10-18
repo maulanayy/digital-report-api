@@ -98,12 +98,13 @@ module.exports = {
   getOneMasterFormSetting: async (req, res) => {
     const { id } = req.params;
     try {
-      const queries = await sails.sendNativeQuery(`SELECT m_form_master_value.txtProductName,m_form_master.txtNoDok FROM m_form_master,m_form_master_value WHERE m_form_master.intFormMasterID = m_form_master_value.intFormMasterID
-      AND m_form_master_value.intFormMasterValueID = $1`,
-        [id]
-      );
-
-      let data = queries.rows[0]
+    
+      let data = await M_Form_Master.findOne({
+        where : {
+          "id" : id
+        },
+        select : ['txtNoDok']
+      })
       
       if (!data) {
         sails.helpers.errorResponse("data not found", "failed").then((resp) => {
