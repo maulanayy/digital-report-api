@@ -61,6 +61,44 @@ module.exports = {
       });
     }
   },
+  getDetailParameter : async (req,res) => {
+    const {id} = req.params
+    try{
+
+      let data = await M_Parameter.findOne({
+        where : {
+          id : id
+        }
+      })
+
+      if (!data) {
+        sails.helpers.errorResponse("parameter is empty", "failed").then((resp) => {
+          res.status(400).send(resp);
+        });
+      }
+
+      if (data.txtTipe == "formula") {
+        const formula = await M_Formula.findOne({
+          where : {
+            txtParameterID : data.txtName
+          },
+          select : ['txtParameterOperator','txtOperator','intValueOperator']
+        })
+
+        data['formula'] = formula
+
+      }
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch(err){
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   getParameterOracle : async (req,res) => {
     try{
       const urlOracle = url + "/api/parameter-code"
@@ -171,6 +209,7 @@ module.exports = {
     try{
       const urlOKP = url + "/api/okp/"+id+"/detail-okp"
       const dataOKP = await axios.get(urlOKP)
+      console.log(dataOKP.data)
       sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -320,6 +359,22 @@ module.exports = {
       });
     }
   },
+  getOneParameterOracle : async (req,res) => {
+    const { id } = req.params;
+    try{
+      console.log("ID : ",id)
+      const urlOKP = url + "/api/parameter/"+id+"/detail"
+      const dataOKP = await axios.get(urlOKP)
+      sails.helpers.successResponse(dataOKP.data.data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  },
   getOneParameterForm : async (req,res) => {
     const { id } = req.params;
     try{
@@ -367,10 +422,11 @@ module.exports = {
         }
         
         if (dataParameter.txtTipe == "oracle") {
-          dataParameter['value']  = 2
+          dataParameter['value']  = 0
         }
       }
       
+      console.log(dataParameter)
       sails.helpers.successResponse(dataParameter, "success").then((resp) => {
         res.ok(resp);
       });

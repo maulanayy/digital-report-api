@@ -26,7 +26,6 @@ module.exports = {
     },
     txtTipeData: {
       type: "string",
-      enum: ["number", "text"],
       columnName: "txtTipeData",
     },
     intEwonSubsSettingID: {

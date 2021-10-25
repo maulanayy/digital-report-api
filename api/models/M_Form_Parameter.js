@@ -25,6 +25,10 @@ module.exports = {
       type: "string",
       columnName: "txtParameterType"
     },
+    txtParameterValueType: {
+      type: "string",
+      columnName: "txtParameterValueType",
+    },
     intMinValue : {
       type : "number",
       columnName : "intMinValue"

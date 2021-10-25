@@ -35,7 +35,6 @@ module.exports = {
     },
     txtSex: {
       type: "string",
-      enum: ["Male", "Female"],
       columnName: "TxtSex",
     },
     dtmBirtDate: {

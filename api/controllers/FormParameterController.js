@@ -507,6 +507,7 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
           "intParameterID",
           "txtParameterName",
           "txtParameterType",
+          "txtParameterValueType",
           "intMinValue",
           "intMaxValue",
         ],
@@ -520,14 +521,21 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
             param.intMinValue == 0 && param.intMaxValue == 0
               ? "SESUAI STANDARD"
               : param.intMinValue + "-" + param.intMaxValue;
+            
         }
+
+        if (param.intMinValue == 0 && param.intMaxValue == 0) {
+          param['type_value'] = "VALUE"
+        }else{
+          param['type_value'] = 'NUMBER'
+        }
+
         const parameter = await M_Parameter.findOne({
           where : {
             txtName : param.intParameterID
           },
           select : ['txtTipe']
         })
-
 
         const paramType = parameter ? parameter.txtTipe : ""
 
@@ -620,6 +628,7 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
           intParameterID: element.TEST_CODE,
           txtParameterName: element.TEST_DESC,
           txtParameterType: element.TYPE_PARAMETER,
+          txtParameterValueType : element.TYPE_VALUE,
           intMinValue: minValue,
           intMaxValue: maxValue,
           intFormID: form.id,
@@ -642,53 +651,68 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
     let { body } = req;
     let parameters = [];
     try {
-      console.log(body);
-      // const form = await M_Form.findOne({
-      //   where: {
-      //     id: params.id,
-      //     dtmDeletedAt: null,
-      //   },
-      // });
+      const form = await M_Form.findOne({
+        where: {
+          id: params.id,
+          dtmDeletedAt: null,
+        },
+      });
 
-      // if (!form) {
-      //   sails.helpers
-      //     .errorResponse("form data not found", "failed")
-      //     .then((resp) => {
-      //       res.status(401).send(resp);
-      //     });
-      // }
-      // await M_Form_Parameter.destroy({
-      //   intFormID: params.id,
-      // }).fetch();
+      if (!form) {
+        sails.helpers
+          .errorResponse("form data not found", "failed")
+          .then((resp) => {
+            res.status(401).send(resp);
+          });
+      }
+      await M_Form_Parameter.destroy({
+        intFormID: params.id,
+      }).fetch();
+      for (let x = 0; x < body.dataParameter.length; x++) {
+        const element = body.dataParameter[x];
+        
+        const minValue = element.MIN_VALUE != null && element.MIN_VALUE != "not defined" ? element.MIN_VALUE : 0;
+        const maxValue = element.MAX_VALUE != null && element.MAX_VALUE != "not defined" ? element.MAX_VALUE : 0;
+        let typeValue = element.TYPE_VALUE
+        if (element.TYPE_VALUE == null || element.TYPE_VALUE == ""){
+          const urlOKP = url + "/api/parameter/"+id+"/detail"
+          const dataOKP = await axios.get(urlOKP)
+          console.log(dataOKP.data)
 
-      // for (let x = 0; x < body.dataParameter.length; x++) {
-      //   const element = body.dataParameter[x];
-      //   const minValue = element.MIN_VALUE != null && element.MIN_VALUE != "not defined" ? element.MIN_VALUE : 0;
-      //   const maxValue = element.MAX_VALUE != null && element.MAX_VALUE != "not defined" ? element.MAX_VALUE : 0;
-      //   parameters.push({
-      //     intParameterID: element.TEST_CODE,
-      //     txtParameterName: element.TEST_DESC,
-      //     intMinValue: minValue,
-      //     intMaxValue: maxValue,
-      //     intFormID: form.id,
-      //   });
-      // }
+          if (!dataOKP.data.MIN_VALUE || !dataOKP.data.MAX_VALUE) {
+            typeValue = "VALUE"
+          }else{
+            typeValue = "NUMBER"
+          }
+          
+        }
 
-      // await M_Form_Parameter.createEach(parameters).fetch();
+        parameters.push({
+          intParameterID: element.TEST_CODE,
+          txtParameterName: element.TEST_DESC,
+          txtParameterType: element.TYPE_PARAMETER,
+          txtParameterValueType : typeValue,
+          intMinValue: minValue,
+          intMaxValue: maxValue,
+          intFormID: form.id,
+        });
+      }
 
-      // const data = await M_Parameter.update({
-      //   id: params.id,
-      // }).set({
-      //   txtName: body.name,
-      //   txtTipe: body.tipe,
-      //   txtTipeData: body.tipe_data,
-      //   txtStandardText: body.txtStandard,
-      //   IntStandarMin: body.numStandarMin,
-      //   IntStandarMax: body.numStandarMax,
-      //   intEwonSubsSettingID: body.topic_id,
-      //   intControlPointID: body.cp_id,
-      //   dtmUpdatedAt: new Date(),
-      // });
+      await M_Form_Parameter.createEach(parameters).fetch();
+
+      await M_Parameter.update({
+        id: params.id,
+      }).set({
+        txtName: body.name,
+        txtTipe: body.tipe,
+        txtTipeData: body.tipe_data,
+        txtStandardText: body.txtStandard,
+        IntStandarMin: body.numStandarMin,
+        IntStandarMax: body.numStandarMax,
+        intEwonSubsSettingID: body.topic_id,
+        intControlPointID: body.cp_id,
+        dtmUpdatedAt: new Date(),
+      });
 
       sails.helpers.successResponse(form, "success").then((resp) => {
         res.ok(resp);
