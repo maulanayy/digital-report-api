@@ -1,27 +1,28 @@
 /**
- * ShiftController
+ * ParameterValueController
  *
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+
 module.exports = {
-  getAll: async (req, res) => {
+  getParameter: async (req, res) => {
     const { page, limit } = req.query;
     let query = {
       dtmDeletedAt: null,
-    };
-    const sort = req.query.sort ? req.query.sort : "dtmCreatedAt DESC";
+    };        
+    const sort = req.query.sort ? req.query.sort : "id ASC";
     try {
-      let shifts = [];
+      let params = [];
       const pagination = {
         page: parseInt(page) - 1 || 0,
         limit: parseInt(limit) || 20,
       };
 
-      const count = await M_Work_shifts.count(query);
+      const count = await M_Parameter_Value.count(query);
       if (count > 0) {
-        shifts = await M_Work_shifts.find(query)
+        params = await M_Parameter_Value.find(query)
           .skip(pagination.page * pagination.limit)
           .limit(pagination.limit)
           .sort(sort);
@@ -39,7 +40,7 @@ module.exports = {
       };
 
       const data = {
-        data: shifts,
+        data: params,
         meta: meta,
       };
 
@@ -53,23 +54,21 @@ module.exports = {
       });
     }
   },
-  getOne: async (req, res) => {
+  getDetailParameter: async (req, res) => {
     const { id } = req.params;
     try {
-      console.log("ID : ", id);
-      const data = await M_Work_shifts.findOne({
+      let data = await M_Parameter_Value.findOne({
         where: {
           id: id,
-          dtmDeletedAt: null,
         },
       });
 
-      console.log(data);
-
       if (!data) {
-        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
-          res.status(401).send(resp);
-        });
+        sails.helpers
+          .errorResponse("parameter is empty", "failed")
+          .then((resp) => {
+            res.status(400).send(resp);
+          });
       }
 
       sails.helpers.successResponse(data, "success").then((resp) => {
@@ -82,18 +81,25 @@ module.exports = {
       });
     }
   },
-  create: async (req, res) => {
+  createParameter: async (req, res) => {
     const { user } = req;
     let { body } = req;
     try {
-      const data = await M_Work_shifts.create({
-        txtName: body.name,
-        dtmTimeStart : body.shift_start,
-        dtmTimeEnd : body.shift_end
-        // txtCreatedBy: user.id,
-      }).fetch();
+      const params = body.map(x => {
+        return {
+          txtParameter : x.TEST_CODE,
+          txtCustomValue : x.CUSTOM_VALUE
+        }
+      })
 
-      sails.helpers.successResponse(data, "success").then((resp) => {
+      const data = await M_Parameter_Value.createEach(params).fetch();
+      
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "create new custom parameter value"
+      })
+
+      sails.helpers.successResponse({}, "success").then((resp) => {
         res.ok(resp);
       });
     } catch (err) {
@@ -103,32 +109,42 @@ module.exports = {
       });
     }
   },
-  update: async (req, res) => {
+  updateParameter: async (req, res) => {
     const { user, params } = req;
     let { body } = req;
     try {
-      const shift = await M_Work_shifts.findOne({
+      const parameter = await M_Parameter_Value.findOne({
         where: {
           id: params.id,
           dtmDeletedAt: null,
         },
       });
 
-      if (!shift) {
-        sails.helpers.errorResponse("shift not found", "failed").then((resp) => {
-          res.status(401).send(resp);
-        });
+      if (!parameter) {
+        sails.helpers
+          .errorResponse("parameter data not found", "failed")
+          .then((resp) => {
+            res.status(400).send(resp);
+          });
       }
 
-      const data = await M_Work_shifts.update({
+      console.log(params)
+      console.log('==========')
+      console.log(body)
+
+      const data = await M_Parameter_Value.update({
         id: params.id,
       }).set({
-        txtName: body.name,
-        dtmTimeStart : body.shift_start,
-        dtmTimeEnd : body.shift_end,
-        // txtUpdatedBy: user.id,
+        txtParameter: body.parameter.toString(),
+        txtCustomValue: body.custom_value,
+        txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });
+
+      await M_User_History.create({
+        intUserID : user.id,
+        txtAction : user.name + "update custom parameter "+params.id
+      })
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -140,32 +156,38 @@ module.exports = {
       });
     }
   },
-  delete: async (req, res) => {
-    const { user, params } = req;
+  deleteParameter: async (req, res) => {
+    const { user,params } = req;
     try {
-      const shift = await M_Work_shifts.findOne({
-        where: {
-          id: params.id,
-          dtmDeletedAt: null,
-        },
-      });
+        const parameter = await M_Parameter.findOne({
+            where: {
+              id: params.id,
+              dtmDeletedAt: null,
+            },
+          });
+    
+          if (!parameter) {
+            sails.helpers
+              .errorResponse("parameter data not found", "failed")
+              .then((resp) => {
+                res.status(400).send(resp);
+              });
+          }
+    
+          const data = await M_Parameter_Value.update({
+            id: params.id,
+          }).set({
+            dtmDeletedAt: new Date(),
+          });
+          
+          await M_User_History.create({
+            intUserID : user.id,
+            txtAction : user.name + "delete custom parameter "+params.id
+          })
 
-      if (!shift) {
-        sails.helpers.errorResponse("user not found", "failed").then((resp) => {
-          res.status(401).send(resp);
-        });
-      }
-
-      const data = await M_Work_shifts.update({
-        id: params.id,
-      }).set({
-        txtDeletedBy: user.id,
-        dtmDeletedAt: new Date(),
-      });
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
+          sails.helpers.successResponse(data, "success").then((resp) => {
+            res.ok(resp);
+          });
     } catch (err) {
       console.log("ERROR : ", err);
       sails.helpers.errorResponse(err.message, "failed").then((resp) => {

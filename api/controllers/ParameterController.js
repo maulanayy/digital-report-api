@@ -113,13 +113,18 @@ module.exports = {
         return dt
       })
 
-      let customParameter = await M_Form_Parameter.find({
-        where : {
-          txtParameterType : 'custom'
-        },
-        select : ['id','intParameterID','intMinValue','intMaxValue'],
-      })
+      // let customParameter = await M_Form_Parameter.find({
+      //   where : {
+      //     txtParameterType : 'custom'
+      //   },
+      //   select : ['id','intParameterID','intMinValue','intMaxValue'],
+      // })
       
+      const queries = await sails.sendNativeQuery(
+        `SELECT DISTINCT intParameterID,intMinValue,intMaxValue FROM m_form_parameter WHERE txtParameterType = 'custom'`
+      );
+
+      let customParameter = queries.rows;
       
       customParameter = customParameter.map(x => {
 
@@ -130,9 +135,14 @@ module.exports = {
         }
       })
 
-      const newData = data.data.concat(customParameter)
-
-      data.data = newData
+      let newData = data.data.concat(customParameter)
+      var result = newData.reduce((unique, o) => {
+        if(!unique.some(obj => obj.TEST_CODE === o.TEST_CODE && obj.TEST_CODE === o.TEST_CODE)) {
+          unique.push(o);
+        }
+        return unique;
+    },[]);
+      data.data = result
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -174,23 +184,6 @@ module.exports = {
       const urlOKP = url + "/api/okp"
       const dataOKP = await axios.get(urlOKP,{params : body})
 
-     
-      // let batchs = dataOKP.data.data.map(x => {
-      //   return x.BATCH_NUMBER
-      // })
-
-      // for (const iterator of listOKP) {
-      //   const cp = iterator['control-point']
-      //   const intersection = cp.filter(item1 => CPUser.some(item2 => item1 === item2.txtName.toLowerCase()))
-      //   console.log("ITERATOR OKP : ",iterator.okp)
-      //   if (intersection.length > 0){
-      //     const found = batchs.find(x => {
-            
-      //       return x == iterator.okp
-      //     })
-      //     console.log(found)
-      //   }
-      // }
       const result = {
         data : dataOKP.data.data
       }
@@ -209,7 +202,7 @@ module.exports = {
     try{
       const urlOKP = url + "/api/okp/"+id+"/detail-okp"
       const dataOKP = await axios.get(urlOKP)
-      console.log(dataOKP.data)
+      
       sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -426,7 +419,6 @@ module.exports = {
         }
       }
       
-      console.log(dataParameter)
       sails.helpers.successResponse(dataParameter, "success").then((resp) => {
         res.ok(resp);
       });

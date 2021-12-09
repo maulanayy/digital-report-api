@@ -371,230 +371,6 @@ module.exports = {
       });
     }
   },
-  getBatchTypeOracle : async (req,res) => {
-    try{
-      const urlBatch = url + "/api/batch-type"
-      const dataBatch = await axios.get(urlBatch)
-      sails.helpers.successResponse(dataBatch.data  , "success").then((resp) => {
-        res.ok(resp);
-      });
-    }catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  getBatchType: async (req, res) => {
-    const { page, limit } = req.query;
-    let query = {
-      dtmDeletedAt: null,
-    };
-
-    try {
-      let okpData = [];
-      const pagination = {
-        page: parseInt(page) - 1 || 0,
-        limit: parseInt(limit) || 20,
-      };
-
-      const count = await M_Batch_Type.count(query);
-      if (count > 0) {
-        const queries = await sails.sendNativeQuery(
-          `
-          SELECT m_batch_type.intBatchTypeID AS id, m_batch_type.txtName,GROUP_CONCAT(m_control_points.txtName )AS control_points FROM m_batch_type, m_batch_type_control_point, m_control_points 
-WHERE m_batch_type.intBatchTypeID = m_batch_type_control_point.intBatchTypeID AND m_batch_type_control_point.intControlPointID = m_control_points.intControlPointID 
-AND m_batch_type.dtmDeletedAt IS NULL GROUP BY m_batch_type.intBatchTypeID ORDER BY m_batch_type.intBatchTypeID ASC LIMIT $2 OFFSET $1
-           `,
-          [pagination.page * pagination.limit, pagination.limit]
-        );
-
-        okpData = queries.rows;
-      }
-
-      const numberOfPages = Math.ceil(count / pagination.limit);
-      const nextPage = parseInt(page) + 1;
-      const meta = {
-        page: parseInt(page),
-        perPage: pagination.limit,
-        previousPage: parseInt(page) > 1 ? parseInt(page) - 1 : false,
-        nextPage: numberOfPages >= nextPage ? nextPage : false,
-        pageCount: numberOfPages,
-        total: count,
-      };
-
-      const data = {
-        data: okpData,
-        meta: meta,
-      };
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  getOneBatchType: async (req, res) => {
-    const { id } = req.params;
-    try {
-      const data = await M_Batch_Type.findOne({
-        where: {
-          id: id,
-          dtmDeletedAt: null,
-        },
-      });
-
-      if (!data) {
-        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
-          res.status(401).send(resp);
-        });
-      }
-      const queries = await sails.sendNativeQuery(
-        `
-        SELECT m_batch_type.intBatchTypeID AS id, m_batch_type.txtName,m_control_points.intControlPointID AS cp_id ,m_control_points.txtName AS control_points FROM m_batch_type, m_batch_type_control_point, m_control_points 
-WHERE m_batch_type.intBatchTypeID = m_batch_type_control_point.intBatchTypeID AND m_batch_type_control_point.intControlPointID = m_control_points.intControlPointID 
-AND m_batch_type.intBatchTypeID = $1 
-        `,
-        [id]
-      );
-
-      const batchType = queries.rows;
-
-      const result = {
-        data: batchType,
-      };
-
-      sails.helpers.successResponse(result, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  createBatchType: async (req, res) => {
-    const { user } = req;
-    let { body } = req;
-    try {
-
-      console.log(body)
-      const batchType = await M_Batch_Type.create({
-        txtName: body.name.value,
-        txtCreatedBy: user.id,
-      }).fetch();
-
-      const controlPoints = body.cp.map((x) => {
-        return {
-          intBatchTypeID: batchType.id,
-          intControlPointID: x,
-          txtCreatedBy: user.id,
-        };
-      });
-
-      await M_Batch_Type_Control_Point.createEach(controlPoints).fetch();
-
-      sails.helpers.successResponse({}, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  updateBatchType: async (req, res) => {
-    const { user, params } = req;
-    let { body } = req;
-    try {
-      const oracle = await M_Batch_Type.findOne({  
-        where: {
-          id: params.id,
-          dtmDeletedAt: null,
-        },
-      });
-
-      if (!oracle) {
-        sails.helpers
-          .errorResponse("data not found", "failed")
-          .then((resp) => {
-            res.status(401).send(resp);
-          });
-      }
-
-      const data = await M_Batch_Type.update({
-        id: params.id,
-      }).set({
-        txtName: body.name,
-      });
-
-      const controlPoints = body.cp.map((x) => {
-        return {
-          intBatchTypeID: params.id,
-          intControlPointID: x,
-          txtCreatedBy: user.id,
-        };
-      });
-
-      await M_Batch_Type_Control_Point.destroy({
-        intBatchTypeID : params.id
-      })
-
-      await M_Batch_Type_Control_Point.createEach(controlPoints).fetch();
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-  deleteBatchType: async (req, res) => {
-    const { user, params } = req;
-    let { body } = req;
-    try {
-      const batchType = await M_Batch_Type.findOne({
-        where: {
-          id: params.id,
-          dtmDeletedAt: null,
-        },
-      });
-
-      console.l
-
-      if (!batchType) {
-        sails.helpers
-          .errorResponse("batch type data not found", "failed")
-          .then((resp) => {
-            res.status(401).send(resp);
-          });
-      }
-
-      const data = await M_Batch_Type.update({
-        id: params.id,
-      }).set({
-        dtmDeletedAt: new Date(),
-      });
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
   getTypeOKP : async (req,res) => {
     const {page, limit} = req.query
     let query = {
@@ -651,15 +427,16 @@ GROUP BY m_type_okp.intTypeOKP ORDER BY m_type_okp.intTypeOKP ASC LIMIT $2 OFFSE
   getOneTypeOKP: async (req, res) => {
     const { id } = req.params;
     try {
+
+      console.log("ID : ",id)
       let data = await M_Type_OKP.findOne({
         where: {
           id: id,
-          dtmDeletedAt: null,
         },
       });
 
       if (!data) {
-        sails.helpers.errorResponse("data not found", "failed").then((resp) => {
+        return sails.helpers.errorResponse("data not found", "failed").then((resp) => {
           res.status(401).send(resp);
         });
       }
@@ -671,7 +448,7 @@ m_type_okp_cp.intControlPointID = m_control_points.intControlPointID AND m_type_
       )
   
       const listOKPCP = query.rows
-
+      console.log(data)
       data['list_cp'] = listOKPCP
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
@@ -746,13 +523,12 @@ m_type_okp_cp.intControlPointID = m_control_points.intControlPointID AND m_type_
     try {
       const typeOKP = await M_Type_OKP.findOne({
         where: {
-          id: params.id,
-          dtmDeletedAt: null,
+          id: params.id
         },
       });
 
       if (!typeOKP) {
-        sails.helpers.errorResponse("ewon not found", "failed").then((resp) => {
+        return sails.helpers.errorResponse("ewon not found", "failed").then((resp) => {
           res.status(401).send(resp);
         });
       }

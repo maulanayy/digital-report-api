@@ -62,17 +62,13 @@ module.exports.routes = {
   "put /role/:id": "RoleController.update",
   "delete /role/:id": "RoleController.delete",
 
-  //Product
-  "get /product": "ProductController.getAll",
-  "get /product/:id": "ProductController.getOne",
-  "get /product/code": "ProductController.getCode",
-  "post /product": "ProductController.create",
-  "put /product/:id": "ProductController.update",
-  "delete /product/:id": "ProductController.delete",
-
   //Paramater
-
   "get /parameter": "ParameterController.getParameter",
+  "get /parameter/:id" : "ParameterController.getDetailParameter",
+  "post /parameter": "ParameterController.createParameter",
+  "put /parameter/:id": "ParameterController.updateParameter",
+  "delete /parameter/:id": "ParameterController.deleteParameter",
+
   "get /parameter/oracle-code": "ParameterController.getParameterOracle",
   "get /parameter/oracle-parameter": "ParameterController.getParameterOKP",
   "get /parameter/okp": "ParameterController.getOKP",
@@ -84,14 +80,16 @@ module.exports.routes = {
   "get /parameter/:id/oracle  ": "ParameterController.getOneParameterOracle",
   "get /parameter/:id/form": "ParameterController.getOneParameterForm",
   "get /parameter/:cp_id/control-point": "ParameterController.getParameterByCP",
-  "post /parameter": "ParameterController.createParameter",
-  "get /parameter/:id" : "ParameterController.getDetailParameter",
-  "put /parameter/:id": "ParameterController.updateParameter",
-  "delete /parameter/:id": "ParameterController.deleteParameter",
   "get /parameter/:id/lot-number" : "ParameterController.getParameterLotNumber",
 
-  //Form
+  //Paramater Value
+  "get /parameter-value": "ParameterValueController.getParameter",
+  "get /parameter-value/:id" : "ParameterValueController.getDetailParameter",
+  "post /parameter-value": "ParameterValueController.createParameter",
+  "put /parameter-value/:id": "ParameterValueController.updateParameter",
+  "delete /parameter-value/:id": "ParameterValueController.deleteParameter",
 
+  //Form Data
   "get /form-data": "FormParameterController.getFormData",
   "get /form-data/:id": "FormParameterController.getOneFormData",
   "get /form-data/:id/value/:form_master_id": "FormParameterController.getFormValue",
@@ -99,17 +97,18 @@ module.exports.routes = {
   "put /form-data/:id": "FormParameterController.updateFormData",
   "put /form-data/:id/approve": "FormParameterController.approveFormData",
   "put /form-data/:id/close": "FormParameterController.closeFormData",
+  "get /form-data/print/:id": "FormParameterController.FormPrint",
+  "get /form-data-parameter": "FormParameterController.getFormDataParameter",
+
+  //Form Parameter
   "get /form-parameter": "FormParameterController.getFormSetting",
-  "get /form-parameter/:id/code": "FormParameterController.getFormSettingCode",
-  "get /form-parameter/code/list": "FormParameterController.getFormCode",
   "get /form-parameter/:id": "FormParameterController.getOneFormSetting",
-  "get /form-parameter/:id/parameter":
-    "FormParameterController.getParameterForm",
   "post /form-parameter": "FormParameterController.createFormSetting",
   "put /form-parameter/:id": "FormParameterController.updateFormSetting",
   "delete /form-parameter/:id": "FormParameterController.deleteFormSetting",
-  "post /form/variable": "FormParameterController.createFormVariableSetting",
-  "get /form-data/print/:id": "FormParameterController.FormPrint",
+  "get /form-parameter/:id/code": "FormParameterController.getFormSettingCode",
+  "get /form-parameter/code/list": "FormParameterController.getFormCode",
+  "get /form-parameter/:id/parameter": "FormParameterController.getParameterForm",
 
   // Master Form
 
@@ -119,39 +118,36 @@ module.exports.routes = {
   "post /master-form": "MasterFormController.createMasterFormSetting",
   "put /master-form/:id": "MasterFormController.updateMasterFormSetting",
   "delete /master-form/:id": "MasterFormController.deleteMasterFormSetting",
-  //Setting
-
+  
+  //Setting Ewon
   "get /setting/ewon": "SettingController.getEwon",
   "get /setting/ewon/:id": "SettingController.getOneEwon",
   "get /setting/ewon/code": "SettingController.getEwonCode",
   "post /setting/ewon": "SettingController.createEwon",
   "put /setting/ewon/:id": "SettingController.updateEwon",
   "delete /setting/ewon/:id": "SettingController.deleteEwon",
+  
+  //Setting Oracle
   "get /setting/oracle": "SettingController.getOracle",
   "get /setting/oracle/:id": "SettingController.getOneOracle",
   "post /setting/oracle": "SettingController.createOracle",
   "put /setting/oracle/:id": "SettingController.updateOracle",
   "delete /setting/oracle/:id": "SettingController.deleteOracle",
-  "get /setting/batch-type/oracle": "SettingController.getBatchTypeOracle",
-  "get /setting/batch-type": "SettingController.getBatchType",
-  "get /setting/batch-type/:id/detail": "SettingController.getOneBatchType",
-  "post /setting/batch-type": "SettingController.createBatchType",
-  "put /setting/batch-type/:id": "SettingController.updateBatchType",
-  "delete /setting/batch-type/:id": "SettingController.deleteBatchType",
+  
+  //Setting Type OKP
   "get /setting/type-okp": "SettingController.getTypeOKP",
   "get /setting/type-okp/:id": "SettingController.getOneTypeOKP",
   "get /setting/type-okp/code": "SettingController.getTypeOKPCode",
   "post /setting/type-okp": "SettingController.createTypeOKP",
   "put /setting/type-okp/:id": "SettingController.updateTypeOKP",
   "delete /setting/type-okp/:id": "SettingController.deleteTypeOKP",
+  
+  //Setting Password
   "get /setting/password" : "SettingController.GetPassword",
   "post /setting/password" : "SettingController.CreatePassword",
   
-  //Permission
-  "get /permission": "PermissionController.getAll",
 
   //shift
-
   "get /shift": "ShiftController.getAll",
   "get /shift/:id": "ShiftController.getOne",
   "post /shift": "ShiftController.create",
@@ -159,7 +155,6 @@ module.exports.routes = {
   "delete /shift/:id": "ShiftController.delete",
 
   //Dashboard
-
   "get /dashboard": "DashboardController.getAll",
   "get /dashboard/group": "DashboardController.getGroup",
   /***************************************************************************

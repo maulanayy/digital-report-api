@@ -49,6 +49,8 @@ module.exports.policies = {
   },
   MasterFormController : {
     "*" : "isAuthenticated"
+  },
+  ParameterValueController : {
+    "*" : "isAuthenticated"
   }
-
 };

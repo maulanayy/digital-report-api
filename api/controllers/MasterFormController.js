@@ -103,7 +103,7 @@ module.exports = {
         where : {
           "id" : id
         },
-        select : ['txtNoDok']
+        select : ['txtNoDok','txtFormName','intLabID','txtRemark']
       })
       
       if (!data) {
@@ -113,7 +113,7 @@ module.exports = {
       }else{
         const queries = await sails.sendNativeQuery(
           `
-                  SELECT m_form_master_list.intFormMasterListID AS id,m_form.txtFormName FROM 
+                  SELECT m_form_master_list.intFormID AS id,m_form.txtFormName FROM 
                   m_form,m_form_master_list WHERE m_form_master_list.intFormID = m_form.intFormID AND m_form_master_list.dtmDeletedAt IS NULL 
                   AND intFormMasterID = $1
               `,
@@ -175,9 +175,43 @@ module.exports = {
     let { body } = req;
     let parameters = [];
     try {
-      console.log(body);
+      const MForm = await M_Form_Master.findOne({
+        id : params.id
+      })
 
-      sails.helpers.successResponse(form, "success").then((resp) => {
+      if (!MForm) {
+        sails.helpers.errorResponse("master form not found", "failed").then((resp) => {
+          res.status(401).send(resp);
+        });
+      }
+
+      const data = await M_Form_Master.update({
+        id : params.id
+      }).set({
+        txtFormName : body.name,
+        txtNoDok : body.no_doc,
+        txtRemark : body.remark,
+        intLabID : body.lab_id,
+        dtmUpdatedAt: new Date(),
+        txtUpdatedBy : user.id
+      })
+
+      await M_Form_Master_List.destroy({
+        intFormMasterID: params.id,
+      });
+
+      for (let x = 0; x < body.forms.length; x++) {
+        const element = body.forms[x]
+        parameters.push({
+          intFormMasterID: params.id,
+          intFormID: element.form_id,
+          txtCreatedBy: user.id,
+        });
+      }
+
+      await M_Form_Master_List.createEach(parameters).fetch();
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
     } catch (err) {

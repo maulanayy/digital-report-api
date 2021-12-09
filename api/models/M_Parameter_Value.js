@@ -1,25 +1,25 @@
 /**
- * M_Product.js
+ * M_Parameter_Value.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
 module.exports = {
-
   attributes: {
     id: {
       type: "number",
-      columnName: "intProductID",
+      columnName: "intParameterValueID",
       autoIncrement: true,
     },
-    txtName: {
-      type: "string",
-      required: true,
-      unique: true,
-      columnName: "txtName",
-    },  
+    txtParameter : {
+      type : "string",
+      columnName : "txtParameter",
+    },
+    txtCustomValue : {
+      type : "string",
+      columnName : "txtCustomValue",
+    }
+    ,
   },
-
 };
-

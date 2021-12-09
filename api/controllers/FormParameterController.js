@@ -6,6 +6,8 @@
  */
 const Excel = require("exceljs");
 const fs = require("fs");
+const axios = require('axios');
+const url = "http://localhost:3000"
 
 module.exports = {
   getFormData: async (req, res) => {
@@ -142,6 +144,7 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
         let parameters = await M_Form_Parameter_Value.find({
           where: {
             intFormInputID: formID.id,
+            dtmDeletedAt : null
           },
           select: [
             "id",
@@ -160,7 +163,7 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
 
         newGroup = Object.keys(Grouparameters).map((x) => {
           let newValue = Grouparameters[x].reduce((obj, current, x) => {
-            obj[`column_${x}`] = current.txtParameterValue;
+            obj[`columns_${x}`] = current.txtParameterValue;
 
             return obj;
           }, {});
@@ -169,6 +172,8 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
           return newValue;
         });
       }
+
+      console.log(newGroup)
 
       sails.helpers
         .successResponse({ data: newGroup }, "success")
@@ -448,7 +453,6 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
       } else {
         controlPoints = user.cp;
       }
-      console.log(controlPoints)
 
       const formList = await M_Form_Master_List.find({
         where: {
@@ -519,7 +523,7 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
         if (param.txtParameterType == "custom") {
           standard =
             param.intMinValue == 0 && param.intMaxValue == 0
-              ? "SESUAI STANDARD"
+              ? "OK"
               : param.intMinValue + "-" + param.intMaxValue;
             
         }
@@ -556,16 +560,32 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
                 `,
           [param.intParameterID]
         );
-        paramSetting = paramQuery.rows;
+        const paramSetting = paramQuery.rows;
 
-        let value = paramSetting.length > 0 ? paramSetting[0].intValue : "";
+        const value = paramSetting.length > 0 ? paramSetting[0].intValue : "";
         param["values"] = value;
         param["standard"] = standard;
+        
+        if (param.txtParameterValueType == 'VALUE'){
+          const paramValueQuery = await sails.sendNativeQuery(`
+          SELECT txtCustomValue FROM m_parameter_value WHERE txtParameter LIKE $1`,[`%${param.intParameterID}%`])
+  
+          const paramValue = paramValueQuery.rows;
+  
+          if (paramValue.length > 0) {
+            param['type_values'] = paramValue[0].txtCustomValue.split(",")
+          }else{
+            param['type_values'] = []
+          }
+        }
+        
+        
         return param;
       });
 
       data["parameter"] = await Promise.all(listParameter);
 
+      console.log(data)
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -671,22 +691,23 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
       for (let x = 0; x < body.dataParameter.length; x++) {
         const element = body.dataParameter[x];
         
-        const minValue = element.MIN_VALUE != null && element.MIN_VALUE != "not defined" ? element.MIN_VALUE : 0;
-        const maxValue = element.MAX_VALUE != null && element.MAX_VALUE != "not defined" ? element.MAX_VALUE : 0;
+        const minValue = element.MIN_VALUE != null && element.MIN_VALUE != "not defined" && element.MIN_VALUE != '' ? element.MIN_VALUE : 0;
+        const maxValue = element.MAX_VALUE != null && element.MAX_VALUE != "not defined" && element.MAX_VALUE != ''? element.MAX_VALUE : 0;
         let typeValue = element.TYPE_VALUE
-        if (element.TYPE_VALUE == null || element.TYPE_VALUE == ""){
-          const urlOKP = url + "/api/parameter/"+id+"/detail"
+        if (element.TYPE_VALUE == null || element.TYPE_VALUE == "" && element.TYPE_VALUE == 'oracle'){
+          const urlOKP = url + "/api/parameter/"+element.TEST_CODE+"/detail"
           const dataOKP = await axios.get(urlOKP)
+          console.log(element.TEST_CODE)
           console.log(dataOKP.data)
 
-          if (!dataOKP.data.MIN_VALUE || !dataOKP.data.MAX_VALUE) {
+          if (!dataOKP.data.data.MIN_VALUE || !dataOKP.data.data.MAX_VALUE) {
             typeValue = "VALUE"
           }else{
             typeValue = "NUMBER"
           }
           
         }
-
+        
         parameters.push({
           intParameterID: element.TEST_CODE,
           txtParameterName: element.TEST_DESC,
@@ -699,17 +720,12 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
       }
 
       await M_Form_Parameter.createEach(parameters).fetch();
-
-      await M_Parameter.update({
+      console.log("FORM NAME : ",body.name)
+      console.log("CP ID : ",body.cp_id)
+      await M_Form.update({
         id: params.id,
       }).set({
-        txtName: body.name,
-        txtTipe: body.tipe,
-        txtTipeData: body.tipe_data,
-        txtStandardText: body.txtStandard,
-        IntStandarMin: body.numStandarMin,
-        IntStandarMax: body.numStandarMax,
-        intEwonSubsSettingID: body.topic_id,
+        txtFormName: body.name,
         intControlPointID: body.cp_id,
         dtmUpdatedAt: new Date(),
       });
@@ -765,28 +781,6 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
       });
     }
   },
-  createFormVariableSetting: async (req, res) => {
-    const { user } = req;
-    let { body } = req;
-    try {
-      const data = await M_Parameter.create({
-        txtName: body.name,
-        txtTipe: body.tipe,
-        intEwonSubsSettingID: body.topic_ip,
-        intControlPointID: body.cp_id,
-      }).fetch();
-
-      sails.helpers.successResponse(data, "success").then((resp) => {
-        res.ok(resp);
-      });
-    } catch (err) {
-      console.log("ERROR : ", err);
-      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
-        res.status(400).send(resp);
-      });
-    }
-  },
-
   FormPrint: async (req, res) => {
     const { params } = req;
     try {
@@ -811,22 +805,6 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
       );
 
       const listForm = formQuery.rows;
-
-      console.log(listForm);
-
-      // const lotNumberQuery = await sails.sendNativeQuery(
-      //   `SELECT txtFormVaraibleValue FROM m_form_parameter_value WHERE intFormInputID = $1 GROUP BY txtFormVaraibleValue`,
-      //   [params.id]
-      // );
-
-      // const parameters = lotNumberQuery.rows;
-
-      // console.log(parameters);
-      // for (let index = 0; index < parameters.length; index++) {
-      //   const element = parameters[index];
-
-      //   columns.push({ name: element.txtFormVaraibleValue });
-      // }
 
       await workbook.xlsx.readFile(file).then(async () => {
         var worksheet = workbook.getWorksheet(1);
@@ -869,41 +847,45 @@ WHERE m_form_parameter_value.txtParameterName = m_form_parameter.intParameterID 
             [element.intFormInputID]
           );
           const parameter = valueQuery.rows;
-          const result = parameter.reduce(function (r, a) {
-            r[a.txtParameterName] = r[a.txtParameterName] || [];
-            r[a.txtParameterName].push(a);
-            return r;
-          }, Object.create(null));
-          let index = 1;
-          let row = ["", "", ""];
-          startTable++;
+          console.log(parameter)
 
-          const firstObj = result[Object.keys(result)[0]]
-          for (let x = 0; x < firstObj.length; x++) {
-            const element = firstObj[x];
-            row.push(element.txtFormVaraibleValue)
-          }
-         
-          worksheet.insertRow(startTable, row);
-
-          for (const key in result) {
+          if (parameter.length > 0){
+            const result = parameter.reduce(function (r, a) {
+              r[a.txtParameterName] = r[a.txtParameterName] || [];
+              r[a.txtParameterName].push(a);
+              return r;
+            }, Object.create(null));
+            let index = 1;
+            let row = ["", "", ""];
             startTable++;
-            const value = result[key];
-            let rowValue = [index, key, ""];
-
-            for (let x = 0; x < value.length; x++) {
-              const element = value[x];
-              rowValue.push(element.txtParameterValue);
+  
+            console.log(result)
+            const firstObj = result[Object.keys(result)[0]]
+            for (let x = 0; x < firstObj.length; x++) {
+              const element = firstObj[x];
+              row.push(element.txtFormVaraibleValue)
             }
-
-            worksheet.insertRow(startTable, rowValue,);
-            index++;
+           
+            console.log(firstObj)
+            worksheet.insertRow(startTable, row);
+  
+            for (const key in result) {
+              startTable++;
+              const value = result[key];
+              let rowValue = [index, key, ""];
+  
+              for (let x = 0; x < value.length; x++) {
+                const element = value[x];
+                rowValue.push(element.txtParameterValue);
+              }
+  
+              worksheet.insertRow(startTable, rowValue,);
+              index++;
+            }
           }
+          
           startTable++;
         }
-
-
-
 
         
         return workbook.xlsx.writeFile(`api/file/${form.formName}.xlsx`);
@@ -930,4 +912,33 @@ WHERE m_form_parameter_value.txtParameterName = m_form_parameter.intParameterID 
       });
     }
   },
+  getFormDataParameter: async (req,res) => {
+    try{
+
+      const form = await M_Form_Master.find({
+        where : {
+          dtmDeletedAt : null
+        },
+        select : ["id","txtFormName","txtNoDok"]
+      })
+      
+      const urlProducts = url + "/api/product"
+      const dataProducts = await axios.get(urlProducts)
+
+      console.log(dataProducts)
+      const data = {
+        form: form,
+        products: dataProducts
+      };
+
+      sails.helpers.successResponse(data, "success").then((resp) => {
+        res.ok(resp);
+      });
+    }catch (err) {
+      console.log("ERROR : ", err);
+      sails.helpers.errorResponse(err.message, "failed").then((resp) => {
+        res.status(400).send(resp);
+      });
+    }
+  }
 };
