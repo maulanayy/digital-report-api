@@ -29,24 +29,6 @@ module.exports = {
       type: "string",
       columnName: "TxtDepartment",
     },
-    txtRelationship: {
-      type: "string",
-      columnName: "TxtRelationship",
-    },
-    txtSex: {
-      type: "string",
-      columnName: "TxtSex",
-    },
-    dtmBirtDate: {
-      type: "ref",
-      columnType: "date",
-      defaultsTo: null,
-      columnName: "dtmBirtDate",
-    },
-    intAge: {
-      type: "number",
-      columnName: "intAge",
-    },
     intRoleID: {
       type: "number",
       columnName: "intRoleID",

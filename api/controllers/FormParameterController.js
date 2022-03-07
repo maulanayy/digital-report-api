@@ -6,8 +6,8 @@
  */
 const Excel = require("exceljs");
 const fs = require("fs");
-const axios = require('axios');
-const url = "http://localhost:3000"
+const axios = require("axios");
+const url = "http://localhost:3000";
 
 module.exports = {
   getFormData: async (req, res) => {
@@ -144,7 +144,7 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
         let parameters = await M_Form_Parameter_Value.find({
           where: {
             intFormInputID: formID.id,
-            dtmDeletedAt : null
+            dtmDeletedAt: null,
           },
           select: [
             "id",
@@ -173,7 +173,7 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
         });
       }
 
-      console.log(newGroup)
+      console.log(newGroup);
 
       sails.helpers
         .successResponse({ data: newGroup }, "success")
@@ -196,7 +196,7 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
         txtRevision: "-",
         txtOKP: body.okp,
         txtProductName: body.product_name,
-        intLotNumberLength : body.lot_numbers_length,
+        intLotNumberLength: body.lot_numbers_length,
         dtmDateExpired: body.expired_date,
         txtProductDesc: body.product_desc,
         dtmProductionDate: body.product_date,
@@ -247,23 +247,21 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
         where: {
           intFormID: body.form,
           intFormMasterID: params.id,
-          txtOKP: body.okp
+          txtOKP: body.okp,
         },
         select: ["id"],
       });
 
-
-      if (paramsForm){
-        formID = paramsForm.id
-      } else{
+      if (paramsForm) {
+        formID = paramsForm.id;
+      } else {
         const form = await M_Form_Input.create({
           intFormID: body.form,
           intFormMasterID: params.id,
           txtOKP: body.okp,
         }).fetch();
 
-        formID = form.id
-
+        formID = form.id;
       }
 
       for (let x = 0; x < body.parameters.length; x++) {
@@ -519,73 +517,86 @@ m_form_master_value.dtmDeletedAt IS NULL AND m_form_master_value.intFormMasterVa
 
       listParameter = listParameter.map(async (param) => {
         let standard = "";
-
+        let value = "";
         if (param.txtParameterType == "custom") {
           standard =
             param.intMinValue == 0 && param.intMaxValue == 0
               ? "OK"
               : param.intMinValue + "-" + param.intMaxValue;
-            
         }
 
-        if (param.intMinValue == 0 && param.intMaxValue == 0) {
-          param['type_value'] = "VALUE"
-        }else{
-          param['type_value'] = 'NUMBER'
+        if (param.txtParameterValueType == "VALUE") {
+          param["type_value"] = "VALUE";
+        } else {
+          param["type_value"] = "NUMBER";
         }
 
         const parameter = await M_Parameter.findOne({
-          where : {
-            txtName : param.intParameterID
+          where: {
+            txtName: param.intParameterID,
           },
-          select : ['txtTipe']
-        })
+          select: ["txtTipe"],
+        });
 
-        const paramType = parameter ? parameter.txtTipe : ""
+        const paramType = parameter ? parameter.txtTipe : "";
 
-        if (paramType == "formula"){
+        if (paramType == "formula") {
           const formula = await M_Formula.findOne({
-            where : {
-              txtParameterID : param.intParameterID
+            where: {
+              txtParameterID: param.intParameterID,
             },
-            select : ['intValueOperator','txtOperator','txtParameterOperator']
-          })
-          param['formula'] = formula
-        } 
+            select: ["intValueOperator", "txtOperator", "txtParameterOperator"],
+          });
+          param["formula"] = formula;
+        }
 
-        const paramQuery = await sails.sendNativeQuery(
-          `
-          SELECT m_ewon_subscriber.intValue FROM m_ewon_subscriber,m_parameter WHERE m_ewon_subscriber.intEwonSubsSettingID = m_parameter.intEwonSubsSettingID
-AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 1
-                `,
-          [param.intParameterID]
-        );
-        const paramSetting = paramQuery.rows;
+        if (paramType == "mesin") {
+          var startDate = new Date();
+          startDate.setHours(0, 0, 0);
 
-        const value = paramSetting.length > 0 ? paramSetting[0].intValue : "";
+          var endDate = new Date();
+          endDate.setHours(23, 59, 59);
+
+          const paramQuery = await sails.sendNativeQuery(
+            `
+            SELECT m_ewon_subscriber.intValue FROM m_ewon_subscriber,m_parameter WHERE m_ewon_subscriber.intEwonSubsSettingID = m_parameter.intEwonSubsSettingID
+            AND m_parameter.txtName = $1 AND m_ewon_subscriber.dtmCreatedAt BETWEEN $2 AND $3 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 1
+                  `,
+            [param.intParameterID, startDate, endDate]
+          );
+          const paramSetting = paramQuery.rows;
+
+          value = paramSetting.length > 0 ? paramSetting[0].intValue : "";
+
+          console.log("VALUE : ", value);
+        }
+
         param["values"] = value;
         param["standard"] = standard;
-        
-        if (param.txtParameterValueType == 'VALUE'){
-          const paramValueQuery = await sails.sendNativeQuery(`
-          SELECT txtCustomValue FROM m_parameter_value WHERE txtParameter LIKE $1`,[`%${param.intParameterID}%`])
-  
+
+        if (param.txtParameterValueType == "VALUE") {
+          const paramValueQuery = await sails.sendNativeQuery(
+            `
+          SELECT txtCustomValue FROM m_parameter_value WHERE txtParameter LIKE $1`,
+            [`%${param.intParameterID}%`]
+          );
+
           const paramValue = paramValueQuery.rows;
-  
+
           if (paramValue.length > 0) {
-            param['type_values'] = paramValue[0].txtCustomValue.split(",")
-          }else{
-            param['type_values'] = []
+            param["type_values"] = paramValue[0].txtCustomValue.split(",");
+          } else {
+            param["type_values"] = [];
           }
+        } else {
+          param["type_values"] = [];
         }
-        
-        
+
         return param;
       });
 
       data["parameter"] = await Promise.all(listParameter);
 
-      console.log(data)
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
@@ -648,7 +659,7 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
           intParameterID: element.TEST_CODE,
           txtParameterName: element.TEST_DESC,
           txtParameterType: element.TYPE_PARAMETER,
-          txtParameterValueType : element.TYPE_VALUE,
+          txtParameterValueType: element.TYPE_VALUE,
           intMinValue: minValue,
           intMaxValue: maxValue,
           intFormID: form.id,
@@ -690,29 +701,42 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
       }).fetch();
       for (let x = 0; x < body.dataParameter.length; x++) {
         const element = body.dataParameter[x];
-        
-        const minValue = element.MIN_VALUE != null && element.MIN_VALUE != "not defined" && element.MIN_VALUE != '' ? element.MIN_VALUE : 0;
-        const maxValue = element.MAX_VALUE != null && element.MAX_VALUE != "not defined" && element.MAX_VALUE != ''? element.MAX_VALUE : 0;
-        let typeValue = element.TYPE_VALUE
-        if (element.TYPE_VALUE == null || element.TYPE_VALUE == "" && element.TYPE_VALUE == 'oracle'){
-          const urlOKP = url + "/api/parameter/"+element.TEST_CODE+"/detail"
-          const dataOKP = await axios.get(urlOKP)
-          console.log(element.TEST_CODE)
-          console.log(dataOKP.data)
+
+        const minValue =
+          element.MIN_VALUE != null &&
+          element.MIN_VALUE != "not defined" &&
+          element.MIN_VALUE != ""
+            ? element.MIN_VALUE
+            : 0;
+        const maxValue =
+          element.MAX_VALUE != null &&
+          element.MAX_VALUE != "not defined" &&
+          element.MAX_VALUE != ""
+            ? element.MAX_VALUE
+            : 0;
+        let typeValue = element.TYPE_VALUE;
+        if (
+          element.TYPE_VALUE == null ||
+          (element.TYPE_VALUE == "" && element.TYPE_VALUE == "oracle")
+        ) {
+          const urlOKP =
+            url + "/api/parameter/" + element.TEST_CODE + "/detail";
+          const dataOKP = await axios.get(urlOKP);
+          console.log(element.TEST_CODE);
+          console.log(dataOKP.data);
 
           if (!dataOKP.data.data.MIN_VALUE || !dataOKP.data.data.MAX_VALUE) {
-            typeValue = "VALUE"
-          }else{
-            typeValue = "NUMBER"
+            typeValue = "VALUE";
+          } else {
+            typeValue = "NUMBER";
           }
-          
         }
-        
+
         parameters.push({
           intParameterID: element.TEST_CODE,
           txtParameterName: element.TEST_DESC,
           txtParameterType: element.TYPE_PARAMETER,
-          txtParameterValueType : typeValue,
+          txtParameterValueType: typeValue,
           intMinValue: minValue,
           intMaxValue: maxValue,
           intFormID: form.id,
@@ -720,8 +744,8 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
       }
 
       await M_Form_Parameter.createEach(parameters).fetch();
-      console.log("FORM NAME : ",body.name)
-      console.log("CP ID : ",body.cp_id)
+      console.log("FORM NAME : ", body.name);
+      console.log("CP ID : ", body.cp_id);
       await M_Form.update({
         id: params.id,
       }).set({
@@ -785,17 +809,16 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
     const { params } = req;
     try {
       let workbook = new Excel.Workbook();
-      const worksheet = workbook.addWorksheet("My Sheet");
+      const ws = workbook.addWorksheet("My Sheet", {
+        pageSetup: { paperSize: 20, orientation: "landscape" },
+      });
       const file = sails.config.appPath + "/api/file/template.xlsx";
       const formMasterQuery = await sails.sendNativeQuery(
         `SELECT m_form_master.txtFormName AS formName, m_form_master.txtNoDok AS noDoc,m_form_master_value.dtmDateExpired AS expiredDate,m_form_master_value.dtmProductionDate AS productionDate,
-        m_form_master_value.txtOKP,m_form_master_value.txtProductDesc,m_form_master_value.txtApprovedBy FROM m_form_master,m_form_master_value WHERE m_form_master.intFormMasterID = m_form_master_value.intFormMasterID AND m_form_master_value.intFormMasterValueID = $1`,
+        m_form_master_value.txtOKP,m_form_master_value.txtProductDesc,m_form_master_value.txtApprovedBy,m_form_master_value.txtPreparedBy FROM m_form_master,m_form_master_value WHERE m_form_master.intFormMasterID = m_form_master_value.intFormMasterID AND m_form_master_value.intFormMasterValueID = $1`,
         [params.id]
       );
       const form = formMasterQuery.rows[0];
-
-      let columns = [{ name: "No" }, { name: "Parameter" }];
-      let data = [];
 
       const formQuery = await sails.sendNativeQuery(
         `
@@ -805,92 +828,259 @@ AND m_parameter.txtName = $1 ORDER BY m_ewon_subscriber.dtmCreatedAt DESC LIMIT 
       );
 
       const listForm = formQuery.rows;
-
-      await workbook.xlsx.readFile(file).then(async () => {
-        var worksheet = workbook.getWorksheet(1);
-        var rowFirst = worksheet.getRow(1);
-        var rowJudul = worksheet.getRow(2);
-        var rowThird = worksheet.getRow(3);
-        var rowFift = worksheet.getRow(5);
-        var rowSix = worksheet.getRow(6);
-        var rowSeven = worksheet.getRow(7);
-
-        worksheet.mergeCells("B5:C5");
-        rowJudul.getCell(3).value = form.formName;
-        rowFirst.getCell(9).value = form.noDoc;
-        rowJudul.getCell(9).value = "0";
-        rowThird.getCell(9).value = form.expiredDate
-          .toISOString()
-          .split("T")[0];
-        rowFift.getCell(2).value = form.txtProductDesc;
-        rowSix.getCell(2).value = form.txtOKP;
-        rowSeven.getCell(2).value = form.productionDate
-          .toISOString()
-          .split("T")[0];
-
-        let startTable = 10;
-
-        for (let x = 0; x < listForm.length; x++) {
-          const element = listForm[x];
-          worksheet.insertRow(startTable, [
-            "NO",
-            element.formName,
-            "Standard",
-            "Lot Number",
-          ]);
-
-          const valueQuery = await sails.sendNativeQuery(
-            `
-          SELECT m_form_parameter_value.txtParameterName,m_form_parameter.intMinValue,m_form_parameter.intMaxValue,m_form_parameter_value.txtFormVaraibleValue,m_form_parameter_value.txtParameterValue FROM m_form_input,m_form_parameter_value,m_form_parameter
-WHERE m_form_parameter_value.txtParameterName = m_form_parameter.intParameterID AND m_form_input.intFormInputID = m_form_parameter_value.intFormInputID AND m_form_input.intFormInputID = $1
-          `,
-            [element.intFormInputID]
-          );
-          const parameter = valueQuery.rows;
-          console.log(parameter)
-
-          if (parameter.length > 0){
-            const result = parameter.reduce(function (r, a) {
-              r[a.txtParameterName] = r[a.txtParameterName] || [];
-              r[a.txtParameterName].push(a);
-              return r;
-            }, Object.create(null));
-            let index = 1;
-            let row = ["", "", ""];
-            startTable++;
-  
-            console.log(result)
-            const firstObj = result[Object.keys(result)[0]]
-            for (let x = 0; x < firstObj.length; x++) {
-              const element = firstObj[x];
-              row.push(element.txtFormVaraibleValue)
-            }
-           
-            console.log(firstObj)
-            worksheet.insertRow(startTable, row);
-  
-            for (const key in result) {
-              startTable++;
-              const value = result[key];
-              let rowValue = [index, key, ""];
-  
-              for (let x = 0; x < value.length; x++) {
-                const element = value[x];
-                rowValue.push(element.txtParameterValue);
-              }
-  
-              worksheet.insertRow(startTable, rowValue,);
-              index++;
-            }
-          }
-          
-          startTable++;
-        }
-
-        
-        return workbook.xlsx.writeFile(`api/file/${form.formName}.xlsx`);
+      const imageId2 = workbook.addImage({
+        buffer: fs.readFileSync('assets/images/logo-kalbe.png'),
+        extension: 'png',
       });
+      ws.addImage( imageId2, 'A1:B4');
 
+      for (let x = 1; x < 5; x++) {
+        await ws.mergeCells(`A${x}:B${x}`);
+        await ws.mergeCells(`C${x}:G${x}`);
+      }
+
+      ws.getCell(`A1`).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" },
+      };
+      ws.getCell(`A2`).border = {
+        left: { style: "thin" },
+        right: { style: "thin" },
+      };
+      ws.getCell(`A3`).border = {
+        left: { style: "thin" },
+        right: { style: "thin" },
+      };
+      ws.getCell(`A4`).border = {
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+      ws.getCell(`C1`).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" },
+      };
+      ws.getCell(`C2`).border = {
+        left: { style: "thin" },
+        right: { style: "thin" },
+      };
+      ws.getCell(`C3`).border = {
+        left: { style: "thin" },
+        right: { style: "thin" },
+      };
+      ws.getCell(`C4`).border = {
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+      ws.getCell(`H1`).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`I1`).border = {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`J1`).border = {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`K1`).border = {
+        top: { style: "thin" },
+        right: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`H2`).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`I2`).border = {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`J2`).border = {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`K2`).border = {
+        top: { style: "thin" },
+        right: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`H3`).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`I3`).border = {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`J3`).border = {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`K3`).border = {
+        top: { style: "thin" },
+        right: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`H4`).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`I4`).border = {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`J4`).border = {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      ws.getCell(`K4`).border = {
+        top: { style: "thin" },
+        right: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+      var rowFirst = ws.getRow(1);
+      var rowJudul = ws.getRow(2);
+      var rowThird = ws.getRow(3);
+      var rowFour = ws.getRow(4);
+      var rowFift = ws.getRow(5);
+      var rowSix = ws.getRow(6);
+      var rowSeven = ws.getRow(7);
+      rowFirst.getCell(3).value = "FORM";
+      rowFirst.getCell(8).value = "No Dok";
+      rowFirst.getCell(3).style = { font: { bold: true } };
+      rowFirst.getCell(9).value = form.noDoc;
+
+      rowJudul.getCell(3).style = { font: { bold: true } };
+      rowJudul.getCell(8).value = "No Rev";
+      rowJudul.getCell(3).value = form.formName;
+      rowJudul.getCell(9).value = "0";
+
+      rowThird.getCell(8).value = "Tgl Berlaku";
+      rowThird.getCell(9).value = form.expiredDate.toISOString().split("T")[0];
+
+      rowFour.getCell(8).value = "Halaman";
+      rowFour.getCell(9).value = "1";
+
+      rowFift.getCell(1).value = "Product Name";
+      rowFift.getCell(2).value = form.txtProductDesc;
+
+      rowSix.getCell(1).value = "OKP";
+      rowSix.getCell(2).value = form.txtOKP;
+
+      rowSeven.getCell(1).value = "Production Date";
+      rowSeven.getCell(2).value = form.productionDate
+        .toISOString()
+        .split("T")[0];
+
+      let startTable = 10;
+      const alpha = Array.from(Array(26)).map((e, i) => i + 65);
+      const alphabet = alpha.map((x) => String.fromCharCode(x));
+
+      for (let x = 0; x < listForm.length; x++) {
+        const element = listForm[x];
+        const headerTable = [
+          "NO",
+          element.formName,
+          "Standard",
+          "Lot Number",
+        ]
+        
+        
+        ws.insertRow(startTable, headerTable);
+
+        const valueQuery = await sails.sendNativeQuery(
+          `
+          SELECT DISTINC m_form_parameter_value.txtParameterName,m_form_parameter_value.txtFormVaraibleValue,m_form_parameter_value.txtParameterValue
+          FROM m_form_parameter_value
+          WHERE m_form_parameter_value.intFormInputID =  $1
+        `,
+          [element.intFormInputID]
+        );
+        const parameter = valueQuery.rows;
+        // console.log(parameter)
+
+        if (parameter.length > 0) {
+          const result = parameter.reduce(function (r, a) {
+            r[a.txtParameterName] = r[a.txtParameterName] || [];
+            r[a.txtParameterName].push(a);
+            return r;
+          }, Object.create(null));
+          let index = 1;
+          let row = ["", "", ""];
+          const firstObj = result[Object.keys(result)[0]];
+          await ws.mergeCells(`A${startTable+1}:C${startTable+1}`);
+          await ws.mergeCells(`D${startTable}:${alphabet[3+firstObj.length-1]}${startTable}`);
+          for (let x = 0; x < headerTable.length+firstObj.length-1; x++) {
+            ws.getCell(`${alphabet[x]}${startTable}`).border = {
+              top: { style: "thin" },
+              right: { style: "thin" },
+              bottom: { style: "thin" },
+              left : {style : "thin"}
+            };
+          }
+
+          startTable++;
+
+          for (let x = 0; x < row.length+firstObj.length; x++) {
+            ws.getCell(`${alphabet[x]}${startTable}`).border = {
+              top: { style: "thin" },
+              right: { style: "thin" },
+              bottom: { style: "thin" },
+              left : {style : "thin"}
+            };
+          }
+
+          for (let x = 0; x < firstObj.length; x++) {
+            const element = firstObj[x];
+            row.push(element.txtFormVaraibleValue);
+          }
+
+          ws.insertRow(startTable, row);
+          
+          for (const key in result) {
+            startTable++;
+            const value = result[key];
+            let rowValue = [index, key, ""];
+
+            for (let x = 0; x < value.length; x++) {
+              const element = value[x];
+              rowValue.push(element.txtParameterValue);
+            }
+
+            ws.insertRow(startTable, rowValue);
+            for (let x = 0; x < rowValue.length; x++) {
+              ws.getCell(`${alphabet[x]}${startTable}`).border = {
+                top: { style: "thin" },
+                right: { style: "thin" },
+                bottom: { style: "thin" },
+                left:{style : "thin"}
+              };
+            }
+            index++;
+          }
+        }
+        startTable++;
+      }
+
+      var bottomRow = ws.getRow(startTable);
+      bottomRow.getCell(8).value = "Prepared By,"
+      bottomRow.getCell(10).value = "Approved By,"
+      startTable++
+      var lastRow = ws.getRow(startTable);
+      lastRow.getCell(8).value = form.txtPreparedBy
+      lastRow.getCell(10).value = form.txtApprovedBy
+      
+      await workbook.xlsx.writeFile(`api/file/${form.formName}.xlsx`);
+      
       const fileReport =
         sails.config.appPath + `/api/file/${form.formName}.xlsx`;
       const filename = `${form.formName}.xlsx`;
@@ -912,33 +1102,31 @@ WHERE m_form_parameter_value.txtParameterName = m_form_parameter.intParameterID 
       });
     }
   },
-  getFormDataParameter: async (req,res) => {
-    try{
-
+  getFormDataParameter: async (req, res) => {
+    try {
       const form = await M_Form_Master.find({
-        where : {
-          dtmDeletedAt : null
+        where: {
+          dtmDeletedAt: null,
         },
-        select : ["id","txtFormName","txtNoDok"]
-      })
-      
-      const urlProducts = url + "/api/product"
-      const dataProducts = await axios.get(urlProducts)
+        select: ["id", "txtFormName", "txtNoDok"],
+      });
 
-      console.log(dataProducts)
+      const urlProducts = url + "/api/product";
+      const dataProducts = await axios.get(urlProducts);
+
       const data = {
         form: form,
-        products: dataProducts
+        products: dataProducts,
       };
 
       sails.helpers.successResponse(data, "success").then((resp) => {
         res.ok(resp);
       });
-    }catch (err) {
+    } catch (err) {
       console.log("ERROR : ", err);
       sails.helpers.errorResponse(err.message, "failed").then((resp) => {
         res.status(400).send(resp);
       });
     }
-  }
+  },
 };

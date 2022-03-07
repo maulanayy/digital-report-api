@@ -253,6 +253,7 @@ m_users.intUserID = m_user_control_points.intUserID AND m_user_control_points.in
           "txtName",
           "txtUsername",
           "txtPassword",
+          "intRoleID",
           "intLabID",
           "dtmCreatedAt",
           "dtmUpdatedAt",
@@ -269,7 +270,7 @@ m_users.intUserID = m_user_control_points.intUserID AND m_user_control_points.in
         sails.helpers.errorResponse("", "user not found").then((resp) => {
           res.status(400).send(resp);
         });
-      } else if (Difference_In_Days >= 90) {
+      } else if (user.intRoleID != 1 && Difference_In_Days >= 90) {
         sails.helpers.errorResponse("", "user Expired").then((resp) => {
           res.status(400).send(resp);
         });

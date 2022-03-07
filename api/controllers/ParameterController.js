@@ -5,9 +5,13 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const axios = require('axios');
-
+const oracledb = require('oracledb');
 const url = "http://localhost:3000"
-
+const configDB = {
+  user          : "XXKMIDQM",
+  password      : "ora3won01",
+  connectString : "10.104.50.30:1521/KMIPROD"
+};
 
 module.exports = {
   getParameter: async (req, res) => {
@@ -218,6 +222,7 @@ module.exports = {
     try{
       const urlOKP = url + "/api/okp/"+id+"/lot-number"
       const dataOKP = await axios.get(urlOKP)
+
       
       sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
         res.ok(resp);
@@ -603,10 +608,27 @@ module.exports = {
   },
   getParameterLotNumber : async (req,res) => {
     const { id } = req.params;
-    try{
+    try{ 
+      let data = []
+      console.log("HIT OKP PARAMETER")
       const urlOKP = url + "/api/okp/"+id+"/parameter"
       const dataOKP = await axios.get(urlOKP)
-      sails.helpers.successResponse(dataOKP.data, "success").then((resp) => {
+
+      console.log(dataOKP.data.data)
+      // conn = await oracledb.getConnection(configDB)
+
+      // const queryIL = await conn.execute(
+      //   `SELECT KMI_DQM_RESULTS_V.TEST_CODE,KMI_DQM_RESULTS_V.MIN_VALUE_NUM,KMI_DQM_RESULTS_V.MAX_VALUE_NUM,
+      //   KMI_DQM_RESULTS_V.RESULT_VALUE_NUM, KMI_DQM_RESULTS_V.RESULT_VALUE_CHAR
+      //                   FROM KMI_DQM_SAMPLES_V,KMI_DQM_RESULTS_V
+      //                   WHERE KMI_DQM_RESULTS_V.SAMPLE_ID = KMI_DQM_SAMPLES_V.SAMPLE_ID 
+      //                   AND KMI_DQM_SAMPLES_V.LOT_NUMBER = :id
+      //   `,[id]
+      // )
+
+      // data = queryIL.rows
+
+      sails.helpers.successResponse({data : dataOKP.data.data}, "success").then((resp) => {
         res.ok(resp);
       });
     }catch (err) {
