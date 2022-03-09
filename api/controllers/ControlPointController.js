@@ -23,9 +23,8 @@ module.exports = {
       if (count > 0) {
         const queries = await sails.sendNativeQuery(
           `
-          SELECT m_control_points.intControlPointID AS id,m_control_points.txtName AS txtName, m_area_control_points.intAreaID AS intAreaID
-          ,GROUP_CONCAT(m_areas.txtName) AS txtAreaName,m_control_points.dtmCreatedAt AS dtmCreatedAt FROM m_areas,m_area_control_points,m_control_points WHERE m_control_points.dtmDeletedAt IS NULL 
-          AND m_areas.intAreaID = m_area_control_points.intAreaID AND m_control_points.intControlPointID = m_area_control_points.intControlPointID GROUP BY m_control_points.intControlPointID ORDER BY m_control_points.intControlPointID ASC LIMIT $2 OFFSET $1
+          SELECT m_control_points.intControlPointID AS id,m_control_points.txtName AS txtName, m_lab.txtName AS labTxtName,m_control_points.dtmCreatedAt AS dtmCreatedAt FROM m_lab,m_control_points WHERE m_control_points.dtmDeletedAt IS NULL 
+          AND m_lab.intLabID = m_control_points.intLabID ORDER BY m_control_points.intControlPointID ASC LIMIT $2 OFFSET $1
            `,
           [pagination.page * pagination.limit, pagination.limit]
         );
@@ -87,15 +86,13 @@ module.exports = {
     try {
       const queries = await sails.sendNativeQuery(
         `
-        SELECT m_control_points.intControlPointID AS id,m_control_points.txtName AS txtName, m_area_control_points.intAreaID AS intAreaID
-        ,m_areas.txtName AS txtAreaName,m_control_points.dtmCreatedAt AS dtmCreatedAt FROM m_areas,m_area_control_points,m_control_points WHERE m_control_points.dtmDeletedAt IS NULL 
-        AND m_areas.intAreaID = m_area_control_points.intAreaID AND m_control_points.intControlPointID = m_area_control_points.intControlPointID AND m_control_points.dtmDeletedAt is NULL 
-      AND m_control_points.intControlPointID = $1
+        SELECT m_control_points.intControlPointID AS id,m_control_points.txtName AS txtName, m_lab.txtName AS labTxtName,m_control_points.dtmCreatedAt AS dtmCreatedAt FROM m_lab,m_control_points WHERE m_control_points.dtmDeletedAt IS NULL 
+        AND m_lab.intLabID = m_control_points.intLabID AND m_control_points.intControlPointID = $1
         `,
         [id]
       );
 
-      const areas = queries.rows;
+      const areas = queries.rows[0];
 
       const data = {
         data: areas,
@@ -140,18 +137,9 @@ module.exports = {
     try {
       const controlPoint = await M_Control_points.create({
         txtName: body.name,
+        intLabID: body.lab_id,
         txtCreatedBy: user.id,
       }).fetch();
-
-      const areas = body.area_id.map((x) => {
-        return {
-          intControlPointID: controlPoint.id,
-          intAreaID: x,
-          txtCreatedBy: user.id,
-        };
-      });
-
-      await M_Area_Control_points.createEach(areas).fetch();
 
       await M_User_History.create({
         intUserID: user.id,
@@ -189,23 +177,10 @@ module.exports = {
         id: params.id,
       }).set({
         txtName: body.name,
+        intLabID: body.lab_id,
         txtUpdatedBy: user.id,
         dtmUpdatedAt: new Date(),
       });
-
-      await M_Area_Control_points.destroy({
-        intControlPointID: params.id,
-      });
-
-      const areas = body.area_id.map((x) => {
-        return {
-          intControlPointID: params.id,
-          intAreaID: x,
-          txtCreatedBy: user.id,
-        };
-      });
-
-      const data = await M_Area_Control_points.createEach(areas).fetch();
 
       await M_User_History.create({
         intUserID: user.id,

@@ -18,5 +18,9 @@ module.exports = {
       unique: true,
       columnName: "txtName",
     },
+    intLabID : {
+      type: "number",
+      columnName: "intLabID",
+    }
   },
 };
